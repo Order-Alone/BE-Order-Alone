@@ -1,0 +1,67 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual env
+.venv/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# Conda
+.conda/
+conda-meta/
+
+# ===== Python tooling =====
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+.pyre/
+
+# ===== Build / packaging =====
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.whl
+
+# ===== Environment / secrets =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== OS (macOS) =====
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# ===== Editors / IDE =====
+.vscode/
+.idea/
+*.iml
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== Misc =====
+*.sqlite3
+*.db
+
+# ===== FastAPI / Uvicorn =====
+# (보통은 로그만 무시하면 충분)
