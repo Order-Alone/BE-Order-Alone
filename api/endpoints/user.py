@@ -27,19 +27,19 @@ class UserLoginRequest(BaseModel):
     account_id: str = Field(
         ...,
         validation_alias="accountId",
-        description="Login id",
+        description="로그인 아이디",
         examples=["alex01"],
     )
-    password: str = Field(..., description="Raw password", examples=["string"])
+    password: str = Field(..., description="원문 비밀번호", examples=["string"])
 
 class RefreshTokenRequest(BaseModel):
-    refresh_token: str = Field(..., description="Refresh token issued at login", examples=["eyJhbGciOi..."])
+    refresh_token: str = Field(..., description="로그인 시 발급된 리프레시 토큰", examples=["eyJhbGciOi..."])
 
 
 @router.post(
     "/signup",
-    summary="Create user account",
-    description="Registers a new user and returns access/refresh tokens.",
+    summary="회원가입",
+    description="새 사용자를 등록하고 액세스/리프레시 토큰을 반환합니다.",
 )
 async def signup(user: User):
     logger.info("signup request account_id=%s password_bytes=%s", user.account_id, len(user.password.encode("utf-8")))
@@ -86,8 +86,8 @@ async def signup(user: User):
 
 @router.post(
     "/login",
-    summary="Login",
-    description="Authenticates user and returns access/refresh tokens.",
+    summary="로그인",
+    description="사용자를 인증하고 액세스/리프레시 토큰을 반환합니다.",
 )
 async def login(body: UserLoginRequest):
     logger.info("login request account_id=%s password_bytes=%s", body.account_id, len(body.password.encode("utf-8")))
@@ -121,8 +121,8 @@ async def login(body: UserLoginRequest):
 
 @router.post(
     "/refresh",
-    summary="Refresh access token",
-    description="Exchanges a refresh token for a new access token.",
+    summary="액세스 토큰 갱신",
+    description="리프레시 토큰으로 새 액세스 토큰을 발급합니다.",
 )
 async def refresh_token(body: RefreshTokenRequest):
     account_id = get_current_refresh_user(body.refresh_token)

@@ -35,8 +35,8 @@ def _serialize_menu(menu: dict) -> dict:
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    summary="Create menu",
-    description="Creates a new menu document.",
+    summary="메뉴 생성",
+    description="새 메뉴 문서를 생성합니다.",
 )
 async def create_menu(menu: Menu):
     menu_dict = menu.model_dump()
@@ -47,28 +47,28 @@ async def create_menu(menu: Menu):
 
 @router.get(
     "/",
-    summary="List menus",
-    description="Returns full menu documents.",
+    summary="메뉴 목록",
+    description="메뉴 전체 문서를 반환합니다.",
 )
-async def list_menus(limit: int = Query(100, ge=1, le=1000, description="Max items to return")):
+async def list_menus(limit: int = Query(100, ge=1, le=1000, description="반환할 최대 개수")):
     menus = await menu_col.find().to_list(limit)
     return [_serialize_menu(menu) for menu in menus]
 
 
 @router.get(
     "/summary",
-    summary="List menu summaries",
-    description="Returns id/name/description only.",
+    summary="메뉴 요약 목록",
+    description="id/name/description만 반환합니다.",
 )
-async def list_menu_summaries(limit: int = Query(100, ge=1, le=1000, description="Max items to return")):
+async def list_menu_summaries(limit: int = Query(100, ge=1, le=1000, description="반환할 최대 개수")):
     menus = await menu_col.find({}, {"name": 1, "description": 1}).to_list(limit)
     return [{"id": str(menu["_id"]), "name": menu.get("name"), "description": menu.get("description")} for menu in menus]
 
 
 @router.get(
     "/{menu_id}",
-    summary="Get menu",
-    description="Fetches a menu by id.",
+    summary="메뉴 조회",
+    description="id로 메뉴를 조회합니다.",
 )
 async def get_menu(menu_id: str):
     menu = await menu_col.find_one({"_id": _as_object_id(menu_id)})
@@ -79,8 +79,8 @@ async def get_menu(menu_id: str):
 
 @router.put(
     "/{menu_id}",
-    summary="Update menu",
-    description="Updates provided fields only.",
+    summary="메뉴 수정",
+    description="전달된 필드만 수정합니다.",
 )
 async def update_menu(menu_id: str, menu: MenuUpdate):
     update = {k: v for k, v in menu.model_dump().items() if v is not None}
@@ -95,8 +95,8 @@ async def update_menu(menu_id: str, menu: MenuUpdate):
 
 @router.delete(
     "/{menu_id}",
-    summary="Delete menu",
-    description="Deletes a menu by id.",
+    summary="메뉴 삭제",
+    description="id로 메뉴를 삭제합니다.",
 )
 async def delete_menu(menu_id: str):
     result = await menu_col.delete_one({"_id": _as_object_id(menu_id)})

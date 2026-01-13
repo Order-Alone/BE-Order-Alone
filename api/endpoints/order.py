@@ -17,15 +17,15 @@ game_col = database["game"]
 
 
 class OrderCreateRequest(BaseModel):
-    game_id: str = Field(..., description="Game id", examples=["64f1c6f0d1a2b3c4d5e6f789"])
+    game_id: str = Field(..., description="게임 id", examples=["64f1c6f0d1a2b3c4d5e6f789"])
 
 
 class OrderScoreRequest(BaseModel):
-    order_id: str = Field(..., description="Order id")
-    game_id: str = Field(..., description="Game id")
-    category: str = Field(..., description="Selected category name")
-    menu_name: str = Field(..., description="Selected menu item name")
-    topping_names: Optional[list] = Field(None, description="Selected topping names")
+    order_id: str = Field(..., description="주문 id")
+    game_id: str = Field(..., description="게임 id")
+    category: str = Field(..., description="선택한 카테고리 이름")
+    menu_name: str = Field(..., description="선택한 메뉴 아이템 이름")
+    topping_names: Optional[list] = Field(None, description="선택한 토핑 이름 목록")
 
 
 def _as_object_id(value: str, label: str) -> ObjectId:
@@ -70,8 +70,8 @@ def _pick_random_menu(menu: dict) -> dict:
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    summary="Create order",
-    description="Creates a new random order for a game.",
+    summary="주문 생성",
+    description="게임에 대한 랜덤 주문을 생성합니다.",
 )
 async def create_order(body: OrderCreateRequest):
     game = await game_col.find_one({"_id": _as_object_id(body.game_id, "game")})
@@ -103,8 +103,8 @@ async def create_order(body: OrderCreateRequest):
 
 @router.post(
     "/score",
-    summary="Score order",
-    description="Checks the submitted answer and updates game score if correct.",
+    summary="주문 채점",
+    description="제출 답안을 확인하고 정답이면 게임 점수를 갱신합니다.",
 )
 async def score_order(body: OrderScoreRequest):
     order = await order_col.find_one({"_id": _as_object_id(body.order_id, "order")})

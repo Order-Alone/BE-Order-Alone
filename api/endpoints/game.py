@@ -15,11 +15,11 @@ order_col = database["order"]
 
 
 class GameStartRequest(BaseModel):
-    menu_id: str = Field(..., description="Menu id", examples=["64f1c6f0d1a2b3c4d5e6f789"])
+    menu_id: str = Field(..., description="메뉴 id", examples=["64f1c6f0d1a2b3c4d5e6f789"])
 
 
 class GameEndRequest(BaseModel):
-    game_id: str = Field(..., description="Game id")
+    game_id: str = Field(..., description="게임 id")
 
 
 def _as_object_id(value: str, label: str) -> ObjectId:
@@ -40,8 +40,8 @@ def _serialize_game(game: dict) -> dict:
 @router.post(
     "/start",
     status_code=status.HTTP_201_CREATED,
-    summary="Start game",
-    description="Creates a game for the current user and returns the first order.",
+    summary="게임 시작",
+    description="현재 사용자로 게임을 생성하고 첫 주문을 반환합니다.",
 )
 async def start_game(body: GameStartRequest, user_id: str = Depends(get_current_user)):
     menu = await menu_col.find_one({"_id": _as_object_id(body.menu_id, "menu")})
@@ -87,8 +87,8 @@ async def start_game(body: GameStartRequest, user_id: str = Depends(get_current_
 
 @router.post(
     "/end",
-    summary="End game",
-    description="Returns the final score for a game.",
+    summary="게임 종료",
+    description="게임의 최종 점수를 반환합니다.",
 )
 async def end_game(body: GameEndRequest, user_id: str = Depends(get_current_user)):
     game = await game_col.find_one({"_id": _as_object_id(body.game_id, "game")})
@@ -104,12 +104,12 @@ async def end_game(body: GameEndRequest, user_id: str = Depends(get_current_user
 
 @router.get(
     "/",
-    summary="List games",
-    description="Lists games for the current user.",
+    summary="게임 목록",
+    description="현재 사용자의 게임 목록을 반환합니다.",
 )
 async def list_games(
     user_id: str = Depends(get_current_user),
-    limit: int = Query(100, ge=1, le=1000, description="Max items to return"),
+    limit: int = Query(100, ge=1, le=1000, description="반환할 최대 개수"),
 ):
     games = await game_col.find({"user_id": user_id}).to_list(limit)
     return [_serialize_game(game) for game in games]
@@ -117,9 +117,9 @@ async def list_games(
 
 @router.get(
     "/top",
-    summary="Top games",
-    description="Lists top games by score.",
+    summary="상위 점수",
+    description="점수 기준 상위 게임을 반환합니다.",
 )
-async def list_top_games(limit: int = Query(10, ge=1, le=100, description="Max items to return")):
+async def list_top_games(limit: int = Query(10, ge=1, le=100, description="반환할 최대 개수")):
     games = await game_col.find().sort("score", -1).to_list(limit)
     return [_serialize_game(game) for game in games]
