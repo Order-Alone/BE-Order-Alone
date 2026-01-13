@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from db.database import database
 from models.menu import Menu, Category
@@ -32,7 +32,12 @@ def _serialize_menu(menu: dict) -> dict:
     return menu
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create menu",
+    description="Creates a new menu document.",
+)
 async def create_menu(menu: Menu):
     menu_dict = menu.model_dump()
     result = await menu_col.insert_one(menu_dict)
@@ -40,19 +45,31 @@ async def create_menu(menu: Menu):
     return _serialize_menu(menu_dict)
 
 
-@router.get("/")
-async def list_menus(limit: int = 100):
+@router.get(
+    "/",
+    summary="List menus",
+    description="Returns full menu documents.",
+)
+async def list_menus(limit: int = Query(100, ge=1, le=1000, description="Max items to return")):
     menus = await menu_col.find().to_list(limit)
     return [_serialize_menu(menu) for menu in menus]
 
 
-@router.get("/summary")
-async def list_menu_summaries(limit: int = 100):
+@router.get(
+    "/summary",
+    summary="List menu summaries",
+    description="Returns id/name/description only.",
+)
+async def list_menu_summaries(limit: int = Query(100, ge=1, le=1000, description="Max items to return")):
     menus = await menu_col.find({}, {"name": 1, "description": 1}).to_list(limit)
     return [{"id": str(menu["_id"]), "name": menu.get("name"), "description": menu.get("description")} for menu in menus]
 
 
-@router.get("/{menu_id}")
+@router.get(
+    "/{menu_id}",
+    summary="Get menu",
+    description="Fetches a menu by id.",
+)
 async def get_menu(menu_id: str):
     menu = await menu_col.find_one({"_id": _as_object_id(menu_id)})
     if menu is None:
@@ -60,7 +77,11 @@ async def get_menu(menu_id: str):
     return _serialize_menu(menu)
 
 
-@router.put("/{menu_id}")
+@router.put(
+    "/{menu_id}",
+    summary="Update menu",
+    description="Updates provided fields only.",
+)
 async def update_menu(menu_id: str, menu: MenuUpdate):
     update = {k: v for k, v in menu.model_dump().items() if v is not None}
     if not update:
@@ -72,7 +93,11 @@ async def update_menu(menu_id: str, menu: MenuUpdate):
     return _serialize_menu(updated)
 
 
-@router.delete("/{menu_id}")
+@router.delete(
+    "/{menu_id}",
+    summary="Delete menu",
+    description="Deletes a menu by id.",
+)
 async def delete_menu(menu_id: str):
     result = await menu_col.delete_one({"_id": _as_object_id(menu_id)})
     if result.deleted_count == 0:

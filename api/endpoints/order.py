@@ -4,7 +4,7 @@ from typing import Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db.database import database
 from models.order import Order, OrderSelection
@@ -17,15 +17,15 @@ game_col = database["game"]
 
 
 class OrderCreateRequest(BaseModel):
-    game_id: str
+    game_id: str = Field(..., description="Game id", examples=["64f1c6f0d1a2b3c4d5e6f789"])
 
 
 class OrderScoreRequest(BaseModel):
-    order_id: str
-    game_id: str
-    category: str
-    menu_name: str
-    topping_names: Optional[list] = None
+    order_id: str = Field(..., description="Order id")
+    game_id: str = Field(..., description="Game id")
+    category: str = Field(..., description="Selected category name")
+    menu_name: str = Field(..., description="Selected menu item name")
+    topping_names: Optional[list] = Field(None, description="Selected topping names")
 
 
 def _as_object_id(value: str, label: str) -> ObjectId:
@@ -67,7 +67,12 @@ def _pick_random_menu(menu: dict) -> dict:
     }
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create order",
+    description="Creates a new random order for a game.",
+)
 async def create_order(body: OrderCreateRequest):
     game = await game_col.find_one({"_id": _as_object_id(body.game_id, "game")})
     if game is None:
@@ -96,7 +101,11 @@ async def create_order(body: OrderCreateRequest):
     return response
 
 
-@router.post("/score")
+@router.post(
+    "/score",
+    summary="Score order",
+    description="Checks the submitted answer and updates game score if correct.",
+)
 async def score_order(body: OrderScoreRequest):
     order = await order_col.find_one({"_id": _as_object_id(body.order_id, "order")})
     if order is None:

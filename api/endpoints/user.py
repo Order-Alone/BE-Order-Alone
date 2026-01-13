@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 from starlette import status
 
 from db.database import database
@@ -22,27 +22,40 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 class UserLoginRequest(BaseModel):
-    accountId: str
-    password: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    account_id: str = Field(
+        ...,
+        validation_alias="accountId",
+        description="Login id",
+        examples=["alex01"],
+    )
+    password: str = Field(..., description="Raw password", examples=["string"])
 
 class RefreshTokenRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(..., description="Refresh token issued at login", examples=["eyJhbGciOi..."])
 
 
-@router.post("/signup")
+@router.post(
+    "/signup",
+    summary="Create user account",
+    description="Registers a new user and returns access/refresh tokens.",
+)
 async def signup(user: User):
-    logger.info("signup request accountId=%s password_bytes=%s", user.accountId, len(user.password.encode("utf-8")))
+    logger.info("signup request account_id=%s password_bytes=%s", user.account_id, len(user.password.encode("utf-8")))
     if is_password_too_long(user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
 
-    existing = await user_col.find_one({"accountId": user.accountId})
+    existing = await user_col.find_one(
+        {"$or": [{"account_id": user.account_id}, {"accountId": user.account_id}]}
+    )
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
 
     try:
         hashed_password = get_password_hash(user.password)
     except ValueError as exc:
-        logger.exception("bcrypt hash failed accountId=%s", user.accountId)
+        logger.exception("bcrypt hash failed account_id=%s", user.account_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password is too long",
@@ -54,14 +67,14 @@ async def signup(user: User):
 
     result = await user_col.insert_one(doc)
 
-    access_token = create_access_token({"sub": str(user.accountId)})
-    refresh_token = create_refresh_token({"sub": str(user.accountId)})
+    access_token = create_access_token({"sub": str(user.account_id)})
+    refresh_token = create_refresh_token({"sub": str(user.account_id)})
 
     from utils.auth import ACCESS_TOKEN_EXPIRE_MINUTES
     return {
         "user": {
             "id": str(result.inserted_id),
-            "accountId": user.accountId,
+            "account_id": user.account_id,
             "name": user.name,
         },
         "access_token": access_token,
@@ -71,26 +84,33 @@ async def signup(user: User):
         "refresh_expires_in_days": REFRESH_TOKEN_EXPIRE_DAYS,
     }
 
-@router.post("/login")
+@router.post(
+    "/login",
+    summary="Login",
+    description="Authenticates user and returns access/refresh tokens.",
+)
 async def login(body: UserLoginRequest):
-    logger.info("login request accountId=%s password_bytes=%s", body.accountId, len(body.password.encode("utf-8")))
+    logger.info("login request account_id=%s password_bytes=%s", body.account_id, len(body.password.encode("utf-8")))
     if is_password_too_long(body.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
-    user = await user_col.find_one({"accountId": body.accountId})
+    user = await user_col.find_one(
+        {"$or": [{"account_id": body.account_id}, {"accountId": body.account_id}]}
+    )
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     try:
         password_ok = verify_password(body.password, user["password"])
     except ValueError as exc:
-        logger.exception("bcrypt verify failed accountId=%s", body.accountId)
+        logger.exception("bcrypt verify failed account_id=%s", body.account_id)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password is too long",
         ) from exc
     if not password_ok:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
-    access_token = create_access_token({"sub": str(user["accountId"])})
-    refresh_token = create_refresh_token({"sub": str(user["accountId"])})
+    account_id = user.get("account_id") or user.get("accountId")
+    access_token = create_access_token({"sub": str(account_id)})
+    refresh_token = create_refresh_token({"sub": str(account_id)})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -99,7 +119,11 @@ async def login(body: UserLoginRequest):
         "refresh_expires_in_days": REFRESH_TOKEN_EXPIRE_DAYS,
     }
 
-@router.post("/refresh")
+@router.post(
+    "/refresh",
+    summary="Refresh access token",
+    description="Exchanges a refresh token for a new access token.",
+)
 async def refresh_token(body: RefreshTokenRequest):
     account_id = get_current_refresh_user(body.refresh_token)
     access_token = create_access_token({"sub": str(account_id)})

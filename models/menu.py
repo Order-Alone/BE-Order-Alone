@@ -1,25 +1,25 @@
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MenuItem(BaseModel):
-    img: str
-    name: str
+    img: str = Field(..., description="Image URL or path")
+    name: str = Field(..., description="Menu item name", examples=["Latte"])
 
 
 class ToppingGroup(BaseModel):
-    name: str
-    items: List[MenuItem]
+    name: str = Field(..., description="Topping group name", examples=["Syrup"])
+    items: List[MenuItem] = Field(..., description="Available toppings")
 
 
 class Category(BaseModel):
-    kategorie: str
-    menus: List[MenuItem]
-    toping: List[ToppingGroup]
+    kategorie: str = Field(..., description="Category name", examples=["Coffee"])
+    menus: List[MenuItem] = Field(..., description="Menu items in the category")
+    toping: List[ToppingGroup] = Field(..., description="Available topping groups")
 
 class Menu(BaseModel):
-    description: str
-    name: str
-    level: int
-    data: List[Category]
+    description: str = Field(..., description="Short description", examples=["Cafe menu"])
+    name: str = Field(..., description="Menu title", examples=["Cafe V1"])
+    level: int = Field(..., description="Difficulty score used for game scoring", examples=[3])
+    data: List[Category] = Field(..., description="Menu categories")
