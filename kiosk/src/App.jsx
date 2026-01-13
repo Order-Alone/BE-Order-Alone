@@ -621,7 +621,7 @@ export default function App() {
             {!bestLoading && !bestError && bestGame && (
               <div className="game-card">
                 <div>
-                  <strong>점수 {bestGame.score ?? 0}</strong>
+                  <strong>{bestGame.score ?? 0}</strong>
                   <span>{bestGame.user_name ? `${bestGame.user_name} · ` : ""}{formatDateTime(bestGame.date)}</span>
                 </div>
               </div>
@@ -644,7 +644,7 @@ export default function App() {
                 {topGames.map((game, index) => (
                   <div key={game.id} className="game-card">
                     <div>
-                      <strong>#{index + 1} 점수 {game.score ?? 0}</strong>
+                      <strong>#{index + 1} {game.score ?? 0}</strong>
                       <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
                   </div>
