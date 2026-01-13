@@ -1,7 +1,7 @@
 {
   "description": "카페 샘플 메뉴입니다.",
   "name": "카페 샘플 메뉴",
-  "level": 3,
+  "level": 5,
   "data": [
     {
       "kategorie": "커피",

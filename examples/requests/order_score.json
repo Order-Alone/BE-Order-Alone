@@ -1,7 +1,7 @@
 {
   "order_id": "64f1c8b0d1a2b3c4d5e6f781",
   "game_id": "64f1c7a0d1a2b3c4d5e6f780",
-  "category": "Coffee",
-  "menu_name": "Americano",
-  "topping_names": ["Extra Shot", "Vanilla"]
+  "category": "커피",
+  "menu_name": "아메리카노",
+  "topping_names": ["샷 추가", "바닐라"]
 }

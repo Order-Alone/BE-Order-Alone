@@ -1,19 +1,19 @@
 {
-  "description": "Updated menu description.",
-  "name": "Sample Cafe Menu Updated",
+  "description": "메뉴 설명을 수정했습니다.",
+  "name": "카페 샘플 메뉴 (수정)",
   "level": 4,
   "data": [
     {
-      "kategorie": "Coffee",
+      "kategorie": "커피",
       "menus": [
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/FlatWhite.png", "name": "Flat White"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Mocha.png", "name": "Mocha"}
+        {"img": "https://source.unsplash.com/featured/?flatwhite,coffee", "name": "플랫화이트"},
+        {"img": "https://source.unsplash.com/featured/?mocha,coffee", "name": "모카"}
       ],
       "toping": [
         {
-          "name": "Syrup",
+          "name": "시럽",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Hazelnut.png", "name": "Hazelnut"}
+            {"img": "https://source.unsplash.com/featured/?hazelnut,coffee", "name": "헤이즐넛"}
           ]
         }
       ]
