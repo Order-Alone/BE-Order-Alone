@@ -12,6 +12,7 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 game_col = database["game"]
 menu_col = database["menu"]
 order_col = database["order"]
+user_col = database["user"]
 
 
 class GameStartRequest(BaseModel):
@@ -48,8 +49,13 @@ async def start_game(body: GameStartRequest, user_id: str = Depends(get_current_
     if menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Menu not found")
 
+    user = await user_col.find_one({"$or": [{"account_id": user_id}, {"accountId": user_id}]})
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
     game = Game(
         user_id=user_id,
+        user_name=user.get("name") or "",
         menu_id=body.menu_id,
         score=0,
         date=datetime.now(timezone.utc),
