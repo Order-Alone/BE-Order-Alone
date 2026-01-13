@@ -218,7 +218,6 @@ export default function App() {
     setGameStatus("");
     setFinalScore(null);
     setSuccessfulOrders([]);
-    setGameOrders([]);
     resetAnswer();
 
     try {
