@@ -289,6 +289,45 @@ button {
   gap: 16px;
 }
 
+.game-list {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+.game-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.game-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.game-card {
+  background: #fff;
+  border: 2px solid var(--stroke);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.game-meta {
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .selection-panel {
   display: flex;
   flex-direction: column;

@@ -21,6 +21,18 @@ const formatTime = (seconds) => {
   return `${mm}:${ss}`;
 };
 
+const formatDateTime = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("ko-KR", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export default function App() {
   const [accessToken, setAccessToken] = useState(storage.get("oa_access_token"));
   const [refreshToken, setRefreshToken] = useState(storage.get("oa_refresh_token"));
@@ -41,6 +53,12 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
   const [view, setView] = useState("home");
+  const [topGames, setTopGames] = useState([]);
+  const [myGames, setMyGames] = useState([]);
+  const [topLoading, setTopLoading] = useState(false);
+  const [myLoading, setMyLoading] = useState(false);
+  const [topError, setTopError] = useState("");
+  const [myError, setMyError] = useState("");
 
   const [answerCategory, setAnswerCategory] = useState("");
   const [answerMenuName, setAnswerMenuName] = useState("");
@@ -126,6 +144,40 @@ export default function App() {
     }
   };
 
+  const loadTopGames = async () => {
+    setTopLoading(true);
+    setTopError("");
+    try {
+      const response = await apiFetch("/game/top?limit=5");
+      if (!response.ok) {
+        throw new Error("상위 게임을 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setTopGames(data);
+    } catch (error) {
+      setTopError(error.message);
+    } finally {
+      setTopLoading(false);
+    }
+  };
+
+  const loadMyGames = async () => {
+    setMyLoading(true);
+    setMyError("");
+    try {
+      const response = await apiFetch("/game?limit=5");
+      if (!response.ok) {
+        throw new Error("내 게임 기록을 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setMyGames(data);
+    } catch (error) {
+      setMyError(error.message);
+    } finally {
+      setMyLoading(false);
+    }
+  };
+
   const resetAnswer = () => {
     setAnswerCategory("");
     setAnswerMenuName("");
@@ -173,6 +225,7 @@ export default function App() {
       const data = await response.json();
       setFinalScore(data.score ?? 0);
       setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
+      await loadMyGames();
       setView("score");
     } catch (error) {
       setGameStatus(error.message);
@@ -296,12 +349,16 @@ export default function App() {
     setIsRunning(false);
     setFinalScore(null);
     setGameStatus("");
+    setTopGames([]);
+    setMyGames([]);
     setView("home");
   };
 
   useEffect(() => {
     if (isAuthed) {
       loadMenus();
+      loadTopGames();
+      loadMyGames();
       setView("home");
     }
   }, [isAuthed]);
@@ -401,6 +458,32 @@ export default function App() {
           <h2>최종 점수</h2>
           <p className="score">{finalScore ?? 0}점</p>
           <p className="status-text">수고했어요! 다시 도전할까요?</p>
+          <div className="game-list">
+            <div className="game-list-header">
+              <h3>내 게임 기록</h3>
+              <button type="button" className="ghost" onClick={loadMyGames} disabled={myLoading}>
+                새로고침
+              </button>
+            </div>
+            {myLoading && <p>불러오는 중...</p>}
+            {myError && <p className="error">{myError}</p>}
+            {!myLoading && !myError && myGames.length === 0 && (
+              <p>기록이 없습니다.</p>
+            )}
+            {!myLoading && !myError && myGames.length > 0 && (
+              <div className="game-cards">
+                {myGames.map((game) => (
+                  <div key={game.id} className="game-card">
+                    <div>
+                      <strong>점수 {game.score ?? 0}</strong>
+                      <span>{formatDateTime(game.date)}</span>
+                    </div>
+                    <span className="game-meta">#{String(game.id).slice(-6)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             className="primary"
             onClick={() => {
@@ -465,6 +548,32 @@ export default function App() {
                 시작하기
               </button>
             </div>
+          </section>
+          <section className="panel">
+            <div className="game-list-header">
+              <h2>상위 게임</h2>
+              <button type="button" className="ghost" onClick={loadTopGames} disabled={topLoading}>
+                새로고침
+              </button>
+            </div>
+            {topLoading && <p>불러오는 중...</p>}
+            {topError && <p className="error">{topError}</p>}
+            {!topLoading && !topError && topGames.length === 0 && (
+              <p>기록이 없습니다.</p>
+            )}
+            {!topLoading && !topError && topGames.length > 0 && (
+              <div className="game-cards">
+                {topGames.map((game, index) => (
+                  <div key={game.id} className="game-card">
+                    <div>
+                      <strong>#{index + 1} 점수 {game.score ?? 0}</strong>
+                      <span>{formatDateTime(game.date)}</span>
+                    </div>
+                    <span className="game-meta">#{String(game.id).slice(-6)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </main>
       </div>
