@@ -141,3 +141,19 @@ async def list_top_games(limit: int = Query(10, ge=1, le=100, description="반�
     for game in serialized:
         game["user_name"] = name_map.get(game.get("user_id"))
     return serialized
+
+
+@router.get(
+    "/best",
+    summary="내 최고 점수",
+    description="현재 사용자의 최고 점수 게임을 반환합니다.",
+)
+async def get_best_game(user_id: str = Depends(get_current_user)):
+    game = await game_col.find_one({"user_id": user_id}, sort=[("score", -1)])
+    if game is None:
+        return None
+    user = await user_col.find_one({"$or": [{"account_id": user_id}, {"accountId": user_id}]})
+    user_name = user.get("name") if user else None
+    serialized = _serialize_game(game)
+    serialized["user_name"] = user_name
+    return serialized

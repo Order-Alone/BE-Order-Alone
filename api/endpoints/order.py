@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from db.database import database
@@ -37,6 +37,10 @@ def _as_object_id(value: str, label: str) -> ObjectId:
 
 def _serialize_order(order: dict) -> dict:
     order["id"] = str(order["_id"])
+    if "menu_id" in order:
+        order["menu_id"] = str(order["menu_id"])
+    if "game_id" in order:
+        order["game_id"] = str(order["game_id"])
     order.pop("_id", None)
     return order
 
@@ -136,6 +140,8 @@ async def score_order(body: OrderScoreRequest):
             {"_id": _as_object_id(body.game_id, "game")},
             {"$inc": {"score": level}},
         )
+    else:
+        await order_col.delete_one({"_id": _as_object_id(body.order_id, "order")})
 
     return {
         "order_id": body.order_id,
@@ -146,3 +152,18 @@ async def score_order(body: OrderScoreRequest):
             "topping_names": list(expected_set) if expected_set else [],
         },
     }
+
+
+@router.get("/game/{game_id}")
+async def list_orders_by_game(
+    game_id: str,
+    user_id: str = Depends(get_current_user),
+    limit: int = Query(100, ge=1, le=1000),
+):
+    game = await game_col.find_one({"_id": _as_object_id(game_id, "game")})
+    if game is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
+    if game.get("user_id") != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Game does not belong to user")
+    orders = await order_col.find({"game_id": _as_object_id(game_id, "game")}).to_list(limit)
+    return [_serialize_order(order) for order in orders]

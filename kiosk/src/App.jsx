@@ -55,10 +55,17 @@ export default function App() {
   const [view, setView] = useState("home");
   const [topGames, setTopGames] = useState([]);
   const [myGames, setMyGames] = useState([]);
+  const [gameOrders, setGameOrders] = useState([]);
+  const [successfulOrders, setSuccessfulOrders] = useState([]);
+  const [bestGame, setBestGame] = useState(null);
   const [topLoading, setTopLoading] = useState(false);
   const [myLoading, setMyLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [bestLoading, setBestLoading] = useState(false);
   const [topError, setTopError] = useState("");
   const [myError, setMyError] = useState("");
+  const [ordersError, setOrdersError] = useState("");
+  const [bestError, setBestError] = useState("");
 
   const [answerCategory, setAnswerCategory] = useState("");
   const [answerMenuName, setAnswerMenuName] = useState("");
@@ -178,6 +185,41 @@ export default function App() {
     }
   };
 
+  const loadBestGame = async () => {
+    setBestLoading(true);
+    setBestError("");
+    try {
+      const response = await apiFetch("/game/best");
+      if (!response.ok) {
+        throw new Error("내 최고 점수를 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setBestGame(data);
+    } catch (error) {
+      setBestError(error.message);
+    } finally {
+      setBestLoading(false);
+    }
+  };
+
+  const loadGameOrders = async (targetGameId) => {
+    if (!targetGameId) return;
+    setOrdersLoading(true);
+    setOrdersError("");
+    try {
+      const response = await apiFetch(`/order/game/${targetGameId}?limit=50`);
+      if (!response.ok) {
+        throw new Error("주문 기록을 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setGameOrders(data);
+    } catch (error) {
+      setOrdersError(error.message);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
   const resetAnswer = () => {
     setAnswerCategory("");
     setAnswerMenuName("");
@@ -188,6 +230,8 @@ export default function App() {
     if (!menuId) return;
     setGameStatus("");
     setFinalScore(null);
+    setSuccessfulOrders([]);
+    setGameOrders([]);
     resetAnswer();
 
     try {
@@ -226,6 +270,8 @@ export default function App() {
       setFinalScore(data.score ?? 0);
       setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
       await loadMyGames();
+      await loadGameOrders(gameId);
+      await loadBestGame();
       setView("score");
     } catch (error) {
       setGameStatus(error.message);
@@ -274,6 +320,13 @@ export default function App() {
       const data = await response.json();
       if (data.correct) {
         setGameStatus("정답! 다음 주문으로 넘어갑니다.");
+        setSuccessfulOrders((prev) => {
+          if (!currentOrder) return prev;
+          if (prev.some((order) => order.id === currentOrder.id)) {
+            return prev;
+          }
+          return [currentOrder, ...prev];
+        });
       } else {
         setGameStatus(
           `오답! 정답: ${data.expected?.category || ""} / ${data.expected?.menu_name || ""}`
@@ -351,6 +404,9 @@ export default function App() {
     setGameStatus("");
     setTopGames([]);
     setMyGames([]);
+    setGameOrders([]);
+    setSuccessfulOrders([]);
+    setBestGame(null);
     setView("home");
   };
 
@@ -359,6 +415,7 @@ export default function App() {
       loadMenus();
       loadTopGames();
       loadMyGames();
+      loadBestGame();
       setView("home");
     }
   }, [isAuthed]);
@@ -484,6 +541,56 @@ export default function App() {
               </div>
             )}
           </div>
+          <div className="game-list">
+            <div className="game-list-header">
+              <h3>성공한 주문</h3>
+            </div>
+            {successfulOrders.length === 0 && <p>성공 기록이 없습니다.</p>}
+            {successfulOrders.length > 0 && (
+              <div className="game-cards">
+                {successfulOrders.map((order) => (
+                  <div key={order.id} className="game-card">
+                    <div>
+                      <strong>{order.selection?.item?.name || "메뉴"}</strong>
+                      <span>{order.selection?.category || "카테고리"}</span>
+                    </div>
+                    <span className="game-meta">#{String(order.id).slice(-6)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="game-list">
+            <div className="game-list-header">
+              <h3>이번 게임 주문</h3>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => loadGameOrders(gameId)}
+                disabled={ordersLoading}
+              >
+                새로고침
+              </button>
+            </div>
+            {ordersLoading && <p>불러오는 중...</p>}
+            {ordersError && <p className="error">{ordersError}</p>}
+            {!ordersLoading && !ordersError && gameOrders.length === 0 && (
+              <p>주문 기록이 없습니다.</p>
+            )}
+            {!ordersLoading && !ordersError && gameOrders.length > 0 && (
+              <div className="game-cards">
+                {gameOrders.map((order) => (
+                  <div key={order.id} className="game-card">
+                    <div>
+                      <strong>{order.selection?.item?.name || "메뉴"}</strong>
+                      <span>{order.selection?.category || "카테고리"}</span>
+                    </div>
+                    <span className="game-meta">#{String(order.id).slice(-6)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             className="primary"
             onClick={() => {
@@ -493,6 +600,8 @@ export default function App() {
               setGameId("");
               setRemainingSeconds(0);
               setFinalScore(null);
+              setGameOrders([]);
+              setSuccessfulOrders([]);
             }}
           >
             새 게임 준비
@@ -548,6 +657,26 @@ export default function App() {
                 시작하기
               </button>
             </div>
+          </section>
+          <section className="panel">
+            <div className="game-list-header">
+              <h2>내 최고 점수</h2>
+              <button type="button" className="ghost" onClick={loadBestGame} disabled={bestLoading}>
+                새로고침
+              </button>
+            </div>
+            {bestLoading && <p>불러오는 중...</p>}
+            {bestError && <p className="error">{bestError}</p>}
+            {!bestLoading && !bestError && !bestGame && <p>기록이 없습니다.</p>}
+            {!bestLoading && !bestError && bestGame && (
+              <div className="game-card">
+                <div>
+                  <strong>점수 {bestGame.score ?? 0}</strong>
+                  <span>{bestGame.user_name ? `${bestGame.user_name} · ` : ""}{formatDateTime(bestGame.date)}</span>
+                </div>
+                <span className="game-meta">#{String(bestGame.id).slice(-6)}</span>
+              </div>
+            )}
           </section>
           <section className="panel">
             <div className="game-list-header">
