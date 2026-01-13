@@ -1,103 +1,103 @@
 {
-  "description": "Burger shop menu with sides and drinks.",
-  "name": "Burger House Menu",
+  "description": "버거 가게의 버거, 사이드, 음료 메뉴입니다.",
+  "name": "버거 하우스 메뉴",
   "level": 4,
   "data": [
     {
-      "kategorie": "Burgers",
+      "kategorie": "버거",
       "menus": [
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ClassicBurger.png", "name": "Classic Burger"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/CheeseBurger.png", "name": "Cheese Burger"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BaconBurger.png", "name": "Bacon Burger"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/DoubleBurger.png", "name": "Double Burger"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyBurger.png", "name": "Spicy Burger"}
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ClassicBurger.png", "name": "클래식 버거"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/CheeseBurger.png", "name": "치즈 버거"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BaconBurger.png", "name": "베이컨 버거"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/DoubleBurger.png", "name": "더블 버거"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyBurger.png", "name": "매운 버거"}
       ],
       "toping": [
         {
-          "name": "Cheese",
+          "name": "치즈",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/AmericanCheese.png", "name": "American Cheese"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cheddar.png", "name": "Cheddar"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/AmericanCheese.png", "name": "아메리칸 치즈"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cheddar.png", "name": "체다 치즈"}
           ]
         },
         {
-          "name": "Sauce",
+          "name": "소스",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BBQSauce.png", "name": "BBQ Sauce"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyMayo.png", "name": "Spicy Mayo"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BBQSauce.png", "name": "바베큐 소스"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyMayo.png", "name": "스파이시 마요"}
           ]
         },
         {
-          "name": "Veggies",
+          "name": "야채",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lettuce.png", "name": "Lettuce"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Pickles.png", "name": "Pickles"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lettuce.png", "name": "양상추"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Pickles.png", "name": "피클"}
           ]
         }
       ]
     },
     {
-      "kategorie": "Sides",
+      "kategorie": "사이드",
       "menus": [
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Fries.png", "name": "French Fries"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SweetPotatoFries.png", "name": "Sweet Potato Fries"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/OnionRings.png", "name": "Onion Rings"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChickenNuggets.png", "name": "Chicken Nuggets"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Coleslaw.png", "name": "Coleslaw"}
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Fries.png", "name": "감자튀김"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SweetPotatoFries.png", "name": "고구마튀김"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/OnionRings.png", "name": "어니언 링"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChickenNuggets.png", "name": "치킨 너겟"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Coleslaw.png", "name": "코울슬로"}
       ],
       "toping": [
         {
-          "name": "Seasoning",
+          "name": "시즈닝",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SeaSalt.png", "name": "Sea Salt"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChiliPowder.png", "name": "Chili Powder"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SeaSalt.png", "name": "바다 소금"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChiliPowder.png", "name": "칠리 파우더"}
           ]
         },
         {
-          "name": "Dip",
+          "name": "딥 소스",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ketchup.png", "name": "Ketchup"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ranch.png", "name": "Ranch"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ketchup.png", "name": "케첩"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ranch.png", "name": "랜치"}
           ]
         },
         {
-          "name": "Extras",
+          "name": "추가",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Parmesan.png", "name": "Parmesan"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Garlic.png", "name": "Garlic"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Parmesan.png", "name": "파마산 치즈"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Garlic.png", "name": "마늘"}
           ]
         }
       ]
     },
     {
-      "kategorie": "Drinks",
+      "kategorie": "음료",
       "menus": [
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cola.png", "name": "Cola"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Sprite.png", "name": "Sprite"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lemonade.png", "name": "Lemonade"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/IcedTea.png", "name": "Iced Tea"},
-        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Milkshake.png", "name": "Milkshake"}
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cola.png", "name": "콜라"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Sprite.png", "name": "사이다"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lemonade.png", "name": "레몬에이드"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/IcedTea.png", "name": "아이스 티"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Milkshake.png", "name": "밀크쉐이크"}
       ],
       "toping": [
         {
-          "name": "Ice",
+          "name": "얼음",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LightIce.png", "name": "Light Ice"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraIce.png", "name": "Extra Ice"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LightIce.png", "name": "얼음 적게"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraIce.png", "name": "얼음 많이"}
           ]
         },
         {
-          "name": "Sweetness",
+          "name": "당도",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LowSugar.png", "name": "Low Sugar"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraSugar.png", "name": "Extra Sugar"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LowSugar.png", "name": "당도 낮게"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraSugar.png", "name": "당도 높게"}
           ]
         },
         {
-          "name": "Add-ins",
+          "name": "추가",
           "items": [
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LemonSlice.png", "name": "Lemon Slice"},
-            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/VanillaShot.png", "name": "Vanilla Shot"}
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LemonSlice.png", "name": "레몬 슬라이스"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/VanillaShot.png", "name": "바닐라 샷"}
           ]
         }
       ]
