@@ -605,7 +605,7 @@ export default function App() {
               <button
                 className="primary"
                 onClick={() => startGame(selectedMenuId)}
-                disabled={!selectedMenuId || isRunning}
+                disabled={menus.length === 0 || isRunning}
               >
                 시작하기
               </button>
