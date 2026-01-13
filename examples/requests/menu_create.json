@@ -1,0 +1,29 @@
+{
+  "description": "Sample menu for a cafe.",
+  "name": "Sample Cafe Menu",
+  "level": 1,
+  "data": [
+    {
+      "kategorie": "Coffee",
+      "menus": [
+        {"img": "https://example.com/americano.png", "name": "Americano"},
+        {"img": "https://example.com/latte.png", "name": "Latte"}
+      ],
+      "toping": [
+        {
+          "name": "Shots",
+          "items": [
+            {"img": "https://example.com/shot.png", "name": "Extra Shot"}
+          ]
+        }
+      ]
+    },
+    {
+      "kategorie": "Dessert",
+      "menus": [
+        {"img": "https://example.com/cake.png", "name": "Cheesecake"}
+      ],
+      "toping": []
+    }
+  ]
+}

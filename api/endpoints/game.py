@@ -1,0 +1,105 @@
+from datetime import datetime, timezone
+
+from bson import ObjectId
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+
+from db.database import database
+from models.game import Game
+from utils.auth import get_current_user
+
+router = APIRouter(dependencies=[Depends(get_current_user)])
+game_col = database["game"]
+menu_col = database["menu"]
+order_col = database["order"]
+
+
+class GameStartRequest(BaseModel):
+    menu_id: str
+
+
+class GameEndRequest(BaseModel):
+    game_id: str
+
+
+def _as_object_id(value: str, label: str) -> ObjectId:
+    try:
+        return ObjectId(value)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid {label} id")
+
+
+def _serialize_game(game: dict) -> dict:
+    game["id"] = str(game["_id"])
+    if "menu_id" in game:
+        game["menu_id"] = str(game["menu_id"])
+    game.pop("_id", None)
+    return game
+
+
+@router.post("/start", status_code=status.HTTP_201_CREATED)
+async def start_game(body: GameStartRequest, user_id: str = Depends(get_current_user)):
+    menu = await menu_col.find_one({"_id": _as_object_id(body.menu_id, "menu")})
+    if menu is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Menu not found")
+
+    game = Game(
+        user_id=user_id,
+        menu_id=body.menu_id,
+        score=0,
+        date=datetime.now(timezone.utc),
+    )
+    game_doc = game.model_dump()
+    game_doc["menu_id"] = _as_object_id(body.menu_id, "menu")
+    result = await game_col.insert_one(game_doc)
+    game_doc["_id"] = result.inserted_id
+
+    # Create first order for the game
+    from api.endpoints.order import _pick_random_menu
+
+    selection = _pick_random_menu(menu)
+    order_doc = {
+        "menu_id": menu["_id"],
+        "game_id": game_doc["_id"],
+        "menu_name": menu.get("name"),
+        "menu_description": menu.get("description"),
+        "level": menu.get("level"),
+        "selection": selection,
+        "created_at": datetime.now(timezone.utc),
+    }
+    order_result = await order_col.insert_one(order_doc)
+    order_doc["_id"] = order_result.inserted_id
+
+    return {
+        "order": {
+            "id": str(order_doc["_id"]),
+            "menu_id": str(order_doc["menu_id"]),
+            "game_id": str(order_doc["game_id"]),
+            "selection": order_doc["selection"],
+        }
+    }
+
+
+@router.post("/end")
+async def end_game(body: GameEndRequest, user_id: str = Depends(get_current_user)):
+    game = await game_col.find_one({"_id": _as_object_id(body.game_id, "game")})
+    if game is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
+    if game.get("user_id") != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Game does not belong to user")
+    return {
+        "game_id": body.game_id,
+        "score": game.get("score", 0),
+    }
+
+
+@router.get("/")
+async def list_games(user_id: str = Depends(get_current_user), limit: int = 100):
+    games = await game_col.find({"user_id": user_id}).to_list(limit)
+    return [_serialize_game(game) for game in games]
+
+
+@router.get("/top")
+async def list_top_games(limit: int = 10):
+    games = await game_col.find().sort("score", -1).to_list(limit)
+    return [_serialize_game(game) for game in games]

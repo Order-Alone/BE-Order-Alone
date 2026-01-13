@@ -7,8 +7,11 @@ from models.user import User
 from utils.auth import (
     get_password_hash,
     create_access_token,
+    create_refresh_token,
     verify_password,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    get_current_refresh_user,
 )
 
 user_col = database["user"]
@@ -17,6 +20,9 @@ router = APIRouter()
 class UserLoginRequest(BaseModel):
     accountId: str
     password: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 
 @router.post("/signup")
@@ -35,6 +41,7 @@ async def signup(user: User):
     result = await user_col.insert_one(doc)
 
     access_token = create_access_token({"sub": str(user.accountId)})
+    refresh_token = create_refresh_token({"sub": str(user.accountId)})
 
     from utils.auth import ACCESS_TOKEN_EXPIRE_MINUTES
     return {
@@ -44,8 +51,10 @@ async def signup(user: User):
             "name": user.name,
         },
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "expires_in_minutes": ACCESS_TOKEN_EXPIRE_MINUTES,
+        "refresh_expires_in_days": REFRESH_TOKEN_EXPIRE_DAYS,
     }
 
 @router.post("/login")
@@ -56,8 +65,21 @@ async def login(body: UserLoginRequest):
     if not verify_password(body.password, user["password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     access_token = create_access_token({"sub": str(user["accountId"])})
+    refresh_token = create_refresh_token({"sub": str(user["accountId"])})
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "expires_in_minutes": ACCESS_TOKEN_EXPIRE_MINUTES,
+        "refresh_expires_in_days": REFRESH_TOKEN_EXPIRE_DAYS,
+    }
+
+@router.post("/refresh")
+async def refresh_token(body: RefreshTokenRequest):
+    account_id = get_current_refresh_user(body.refresh_token)
+    access_token = create_access_token({"sub": str(account_id)})
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "expires_in_minutes": ACCESS_TOKEN_EXPIRE_MINUTES
+        "expires_in_minutes": ACCESS_TOKEN_EXPIRE_MINUTES,
     }
