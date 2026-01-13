@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://13.209.210.38:8000/api";
+const API_BASE = "http://13.209.210.38/api";
 const GAME_SECONDS = 180;
 
 const storage = {
