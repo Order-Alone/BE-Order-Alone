@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "http://13.209.210.38/api";
+const API_BASE = "http://13.209.2/api";
 const GAME_SECONDS = 60;
 
 const storage = {
