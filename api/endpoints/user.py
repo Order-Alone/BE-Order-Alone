@@ -12,6 +12,7 @@ from utils.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS,
     get_current_refresh_user,
+    is_password_too_long,
 )
 
 user_col = database["user"]
@@ -27,6 +28,8 @@ class RefreshTokenRequest(BaseModel):
 
 @router.post("/signup")
 async def signup(user: User):
+    if is_password_too_long(user.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
 
     existing = await user_col.find_one({"accountId": user.accountId})
     if existing:
@@ -59,6 +62,8 @@ async def signup(user: User):
 
 @router.post("/login")
 async def login(body: UserLoginRequest):
+    if is_password_too_long(body.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
     user = await user_col.find_one({"accountId": body.accountId})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")

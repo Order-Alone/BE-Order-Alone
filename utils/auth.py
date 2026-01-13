@@ -11,6 +11,7 @@ SECRET_KEY = "CHANGE_ME_TO_RANDOM_LONG_STRING"  # .env로 빼는 걸 추천
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+MAX_BCRYPT_PASSWORD_BYTES = 72
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()
@@ -20,6 +21,9 @@ def get_password_hash(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
+def is_password_too_long(password: str) -> bool:
+    return len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
