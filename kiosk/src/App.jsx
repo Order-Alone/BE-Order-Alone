@@ -476,7 +476,7 @@ export default function App() {
                   <div key={game.id} className="game-card">
                     <div>
                       <strong>점수 {game.score ?? 0}</strong>
-                      <span>{formatDateTime(game.date)}</span>
+                      <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
                     <span className="game-meta">#{String(game.id).slice(-6)}</span>
                   </div>
@@ -567,7 +567,7 @@ export default function App() {
                   <div key={game.id} className="game-card">
                     <div>
                       <strong>#{index + 1} 점수 {game.score ?? 0}</strong>
-                      <span>{formatDateTime(game.date)}</span>
+                      <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
                     <span className="game-meta">#{String(game.id).slice(-6)}</span>
                   </div>

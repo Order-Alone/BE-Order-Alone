@@ -49,13 +49,8 @@ async def start_game(body: GameStartRequest, user_id: str = Depends(get_current_
     if menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Menu not found")
 
-    user = await user_col.find_one({"$or": [{"account_id": user_id}, {"accountId": user_id}]})
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
     game = Game(
         user_id=user_id,
-        user_name=user.get("name") or "",
         menu_id=body.menu_id,
         score=0,
         date=datetime.now(timezone.utc),
@@ -118,7 +113,12 @@ async def list_games(
     limit: int = Query(100, ge=1, le=1000, description="반환할 최대 개수"),
 ):
     games = await game_col.find({"user_id": user_id}).to_list(limit)
-    return [_serialize_game(game) for game in games]
+    user = await user_col.find_one({"$or": [{"account_id": user_id}, {"accountId": user_id}]})
+    user_name = user.get("name") if user else None
+    serialized = [_serialize_game(game) for game in games]
+    for game in serialized:
+        game["user_name"] = user_name
+    return serialized
 
 
 @router.get(
@@ -128,4 +128,16 @@ async def list_games(
 )
 async def list_top_games(limit: int = Query(10, ge=1, le=100, description="반환할 최대 개수")):
     games = await game_col.find().sort("score", -1).to_list(limit)
-    return [_serialize_game(game) for game in games]
+    user_ids = {game.get("user_id") for game in games if game.get("user_id")}
+    users = await user_col.find(
+        {"$or": [{"account_id": {"$in": list(user_ids)}}, {"accountId": {"$in": list(user_ids)}}]}
+    ).to_list(len(user_ids))
+    name_map = {}
+    for user in users:
+        account_id = user.get("account_id") or user.get("accountId")
+        if account_id:
+            name_map[account_id] = user.get("name")
+    serialized = [_serialize_game(game) for game in games]
+    for game in serialized:
+        game["user_name"] = name_map.get(game.get("user_id"))
+    return serialized
