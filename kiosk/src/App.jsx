@@ -207,7 +207,14 @@ export default function App() {
   };
 
   const startGame = async (menuId) => {
-    if (!menuId) return;
+    const targetMenuId = menuId || menus[0]?.id;
+    if (!targetMenuId) {
+      setGameStatus("메뉴를 선택해 주세요.");
+      return;
+    }
+    if (!menuId && targetMenuId) {
+      setSelectedMenuId(targetMenuId);
+    }
     setGameStatus("");
     setFinalScore(null);
     setSuccessfulOrders([]);
@@ -217,7 +224,7 @@ export default function App() {
     try {
       const response = await apiFetch("/game/start", {
         method: "POST",
-        body: JSON.stringify({ menu_id: menuId }),
+        body: JSON.stringify({ menu_id: targetMenuId }),
       });
       if (!response.ok) {
         throw new Error("게임을 시작할 수 없습니다.");

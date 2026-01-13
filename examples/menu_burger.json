@@ -1,0 +1,106 @@
+{
+  "description": "Burger shop menu with sides and drinks.",
+  "name": "Burger House Menu",
+  "level": 4,
+  "data": [
+    {
+      "kategorie": "Burgers",
+      "menus": [
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ClassicBurger.png", "name": "Classic Burger"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/CheeseBurger.png", "name": "Cheese Burger"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BaconBurger.png", "name": "Bacon Burger"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/DoubleBurger.png", "name": "Double Burger"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyBurger.png", "name": "Spicy Burger"}
+      ],
+      "toping": [
+        {
+          "name": "Cheese",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/AmericanCheese.png", "name": "American Cheese"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cheddar.png", "name": "Cheddar"}
+          ]
+        },
+        {
+          "name": "Sauce",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/BBQSauce.png", "name": "BBQ Sauce"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SpicyMayo.png", "name": "Spicy Mayo"}
+          ]
+        },
+        {
+          "name": "Veggies",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lettuce.png", "name": "Lettuce"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Pickles.png", "name": "Pickles"}
+          ]
+        }
+      ]
+    },
+    {
+      "kategorie": "Sides",
+      "menus": [
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Fries.png", "name": "French Fries"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SweetPotatoFries.png", "name": "Sweet Potato Fries"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/OnionRings.png", "name": "Onion Rings"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChickenNuggets.png", "name": "Chicken Nuggets"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Coleslaw.png", "name": "Coleslaw"}
+      ],
+      "toping": [
+        {
+          "name": "Seasoning",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/SeaSalt.png", "name": "Sea Salt"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ChiliPowder.png", "name": "Chili Powder"}
+          ]
+        },
+        {
+          "name": "Dip",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ketchup.png", "name": "Ketchup"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Ranch.png", "name": "Ranch"}
+          ]
+        },
+        {
+          "name": "Extras",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Parmesan.png", "name": "Parmesan"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Garlic.png", "name": "Garlic"}
+          ]
+        }
+      ]
+    },
+    {
+      "kategorie": "Drinks",
+      "menus": [
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Cola.png", "name": "Cola"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Sprite.png", "name": "Sprite"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Lemonade.png", "name": "Lemonade"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/IcedTea.png", "name": "Iced Tea"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Milkshake.png", "name": "Milkshake"}
+      ],
+      "toping": [
+        {
+          "name": "Ice",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LightIce.png", "name": "Light Ice"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraIce.png", "name": "Extra Ice"}
+          ]
+        },
+        {
+          "name": "Sweetness",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LowSugar.png", "name": "Low Sugar"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/ExtraSugar.png", "name": "Extra Sugar"}
+          ]
+        },
+        {
+          "name": "Add-ins",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/LemonSlice.png", "name": "Lemon Slice"},
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/VanillaShot.png", "name": "Vanilla Shot"}
+          ]
+        }
+      ]
+    }
+  ]
+}
