@@ -1,5 +1,22 @@
 {
   "description": "Updated menu description.",
   "name": "Sample Cafe Menu Updated",
-  "level": 2
+  "level": 4,
+  "data": [
+    {
+      "kategorie": "Coffee",
+      "menus": [
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/FlatWhite.png", "name": "Flat White"},
+        {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Mocha.png", "name": "Mocha"}
+      ],
+      "toping": [
+        {
+          "name": "Syrup",
+          "items": [
+            {"img": "https://order-alone.s3.us-east-1.amazonaws.com/Hazelnut.png", "name": "Hazelnut"}
+          ]
+        }
+      ]
+    }
+  ]
 }
