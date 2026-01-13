@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "http://13.209.210.38/api";
-const GAME_SECONDS = 180;
+const API_BASE = "http://13.209.210.38bi/api";
+const GAME_SECONDS = 60;
 
 const storage = {
   get(key) {
@@ -40,6 +40,7 @@ export default function App() {
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
+  const [view, setView] = useState("kiosk");
 
   const [answerCategory, setAnswerCategory] = useState("");
   const [answerMenuName, setAnswerMenuName] = useState("");
@@ -171,6 +172,7 @@ export default function App() {
       const data = await response.json();
       setFinalScore(data.score ?? 0);
       setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
+      setView("score");
     } catch (error) {
       setGameStatus(error.message);
     }
@@ -293,6 +295,7 @@ export default function App() {
     setIsRunning(false);
     setFinalScore(null);
     setGameStatus("");
+    setView("kiosk");
   };
 
   useEffect(() => {
@@ -317,7 +320,7 @@ export default function App() {
 
   useEffect(() => {
     if (isRunning && remainingSeconds === 0) {
-      endGame();
+      void endGame();
     }
   }, [remainingSeconds, isRunning]);
 
@@ -334,7 +337,7 @@ export default function App() {
         <div className="panel">
           <div className="brand">
             <span>ORDER ALONE</span>
-            <p>3분 동안 최대 점수를 노려보세요.</p>
+            <p>1분 동안 최대 점수를 노려보세요.</p>
           </div>
           <div className="tabs">
             <button
@@ -377,12 +380,46 @@ export default function App() {
     );
   }
 
+  if (view === "score") {
+    return (
+      <div className="app kiosk score-view">
+        <header className="topbar">
+          <div>
+            <h1>ORDER ALONE</h1>
+            <p>게임 결과</p>
+          </div>
+          <button className="ghost" onClick={logout}>
+            로그아웃
+          </button>
+        </header>
+        <main className="panel score-panel">
+          <h2>최종 점수</h2>
+          <p className="score">{finalScore ?? 0}점</p>
+          <p className="status-text">수고했어요! 다시 도전할까요?</p>
+          <button
+            className="primary"
+            onClick={() => {
+              setView("kiosk");
+              setGameStatus("");
+              setCurrentOrder(null);
+              setGameId("");
+              setRemainingSeconds(0);
+              setFinalScore(null);
+            }}
+          >
+            새 게임 준비
+          </button>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app kiosk">
       <header className="topbar">
         <div>
           <h1>ORDER ALONE</h1>
-          <p>3분 챌린지 키오스크</p>
+          <p>1분 챌린지 키오스크</p>
         </div>
         <div className="status">
           <div>
@@ -429,130 +466,131 @@ export default function App() {
             >
               게임 시작
             </button>
-            <button className="ghost" onClick={endGame} disabled={!isRunning}>
-              게임 종료
-            </button>
           </div>
         </section>
 
-        <section className="panel order-panel">
-          <div className="order-header">
-            <h2>현재 주문</h2>
-            {currentOrder && <span>Order #{currentOrder.id?.slice(-6)}</span>}
-          </div>
-          {currentOrder ? (
-            <div className="order-card">
-              <p className="order-category">{currentOrder.selection?.category}</p>
-              <h3>{currentOrder.selection?.item?.name}</h3>
-              <div className="topping-list">
-                {(currentOrder.selection?.topping || []).length ? (
-                  currentOrder.selection.topping.map((topping, index) => (
-                    <span key={`${topping.group}-${index}`}>
-                      {topping.group}: {topping.item?.name}
-                    </span>
-                  ))
-                ) : (
-                  <span>토핑 없음</span>
-                )}
-              </div>
+        {selectedMenuId && (
+          <section className="panel order-panel">
+            <div className="order-header">
+              <h2>현재 주문</h2>
+              {currentOrder && <span>Order #{currentOrder.id?.slice(-6)}</span>}
             </div>
-          ) : (
-            <p>게임을 시작하면 주문이 표시됩니다.</p>
-          )}
-          {gameStatus && <p className="status-text">{gameStatus}</p>}
-          {finalScore !== null && (
-            <p className="score">최종 점수: {finalScore}</p>
-          )}
-        </section>
-
-        <section className="panel selection-panel">
-          <h2>정답 입력</h2>
-          {!menuDetails ? (
-            <p>메뉴를 선택해 주세요.</p>
-          ) : (
-            <>
-              <div className="selector">
-                <p>카테고리</p>
-                <div className="chips">
-                  {categories.map((category) => (
-                    <button
-                      key={category.kategorie}
-                      type="button"
-                      className={answerCategory === category.kategorie ? "selected" : ""}
-                      onClick={() => setAnswerCategory(category.kategorie)}
-                    >
-                      {category.kategorie}
-                    </button>
-                  ))}
+            {currentOrder ? (
+              <div className="order-card">
+                <p className="order-category">{currentOrder.selection?.category}</p>
+                <h3>{currentOrder.selection?.item?.name}</h3>
+                <div className="topping-list">
+                  {(currentOrder.selection?.topping || []).length ? (
+                    currentOrder.selection.topping.map((topping, index) => (
+                      <span key={`${topping.group}-${index}`}>
+                        {topping.group}: {topping.item?.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span>토핑 없음</span>
+                  )}
                 </div>
               </div>
+            ) : (
+              <p>게임을 시작하면 주문이 표시됩니다.</p>
+            )}
+            {gameStatus && <p className="status-text">{gameStatus}</p>}
+            {finalScore !== null && (
+              <p className="score">최종 점수: {finalScore}</p>
+            )}
+          </section>
+        )}
 
-              {selectedCategory && (
+        {selectedMenuId && (
+          <section className="panel selection-panel">
+            <h2>{isRunning ? "정답 입력" : "메뉴 미리보기"}</h2>
+            {!menuDetails ? (
+              <p>메뉴를 선택해 주세요.</p>
+            ) : (
+              <>
                 <div className="selector">
-                  <p>메뉴</p>
+                  <p>카테고리</p>
                   <div className="chips">
-                    {selectedCategory.menus.map((item) => (
+                    {categories.map((category) => (
                       <button
-                        key={item.name}
+                        key={category.kategorie}
                         type="button"
-                        className={answerMenuName === item.name ? "selected" : ""}
-                        onClick={() => setAnswerMenuName(item.name)}
+                        className={answerCategory === category.kategorie ? "selected" : ""}
+                        onClick={() => setAnswerCategory(category.kategorie)}
                       >
-                        {item.name}
+                        {category.kategorie}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {selectedCategory && selectedCategory.toping?.length > 0 && (
-                <div className="selector">
-                  <p>토핑</p>
-                  <div className="topping-groups">
-                    {selectedCategory.toping.map((group) => (
-                      <div key={group.name} className="topping-group">
-                        <strong>{group.name}</strong>
-                        <div className="chips">
-                          {group.items.map((item) => {
-                            const selected = answerToppings.has(item.name);
-                            return (
-                              <button
-                                key={item.name}
-                                type="button"
-                                className={selected ? "selected" : ""}
-                                onClick={() => {
-                                  setAnswerToppings((prev) => {
-                                    const next = new Set(prev);
-                                    if (next.has(item.name)) {
-                                      next.delete(item.name);
-                                    } else {
-                                      next.add(item.name);
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              >
-                                {item.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
+                {selectedCategory && (
+                  <div className="selector">
+                    <p>메뉴</p>
+                    <div className="chips">
+                      {selectedCategory.menus.map((item) => (
+                        <button
+                          key={item.name}
+                          type="button"
+                          className={answerMenuName === item.name ? "selected" : ""}
+                          onClick={() => setAnswerMenuName(item.name)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              <button
-                className="primary"
-                onClick={submitScore}
-                disabled={!currentOrder || !isRunning}
-              >
-                채점 요청
-              </button>
-            </>
-          )}
-        </section>
+                {selectedCategory && selectedCategory.toping?.length > 0 && (
+                  <div className="selector">
+                    <p>토핑</p>
+                    <div className="topping-groups">
+                      {selectedCategory.toping.map((group) => (
+                        <div key={group.name} className="topping-group">
+                          <strong>{group.name}</strong>
+                          <div className="chips">
+                            {group.items.map((item) => {
+                              const selected = answerToppings.has(item.name);
+                              return (
+                                <button
+                                  key={item.name}
+                                  type="button"
+                                  className={selected ? "selected" : ""}
+                                  onClick={() => {
+                                    setAnswerToppings((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(item.name)) {
+                                        next.delete(item.name);
+                                      } else {
+                                        next.add(item.name);
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                >
+                                  {item.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  className="primary"
+                  onClick={submitScore}
+                  disabled={!currentOrder || !isRunning}
+                >
+                  채점 요청
+                </button>
+              </>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );

@@ -277,6 +277,18 @@ button {
   margin: 0;
 }
 
+.score-view {
+  align-items: center;
+  justify-content: center;
+}
+
+.score-panel {
+  width: min(520px, 90vw);
+  text-align: center;
+  display: grid;
+  gap: 16px;
+}
+
 .selection-panel {
   display: flex;
   flex-direction: column;
