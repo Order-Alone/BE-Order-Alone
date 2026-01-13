@@ -519,7 +519,6 @@ export default function App() {
                       <strong>점수 {game.score ?? 0}</strong>
                       <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
-                    <span className="game-meta">#{String(game.id).slice(-6)}</span>
                   </div>
                 ))}
               </div>
@@ -538,7 +537,6 @@ export default function App() {
                       <strong>{order.selection?.item?.name || "메뉴"}</strong>
                       <span>{order.selection?.category || "카테고리"}</span>
                     </div>
-                    <span className="game-meta">#{String(order.id).slice(-6)}</span>
                   </div>
                 ))}
               </div>
@@ -626,7 +624,6 @@ export default function App() {
                   <strong>점수 {bestGame.score ?? 0}</strong>
                   <span>{bestGame.user_name ? `${bestGame.user_name} · ` : ""}{formatDateTime(bestGame.date)}</span>
                 </div>
-                <span className="game-meta">#{String(bestGame.id).slice(-6)}</span>
               </div>
             )}
           </section>
@@ -650,7 +647,6 @@ export default function App() {
                       <strong>#{index + 1} 점수 {game.score ?? 0}</strong>
                       <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
-                    <span className="game-meta">#{String(game.id).slice(-6)}</span>
                   </div>
                 ))}
               </div>
