@@ -40,7 +40,7 @@ export default function App() {
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
-  const [view, setView] = useState("kiosk");
+  const [view, setView] = useState("home");
 
   const [answerCategory, setAnswerCategory] = useState("");
   const [answerMenuName, setAnswerMenuName] = useState("");
@@ -132,8 +132,8 @@ export default function App() {
     setAnswerToppings(new Set());
   };
 
-  const startGame = async () => {
-    if (!selectedMenuId) return;
+  const startGame = async (menuId) => {
+    if (!menuId) return;
     setGameStatus("");
     setFinalScore(null);
     resetAnswer();
@@ -141,7 +141,7 @@ export default function App() {
     try {
       const response = await apiFetch("/game/start", {
         method: "POST",
-        body: JSON.stringify({ menu_id: selectedMenuId }),
+        body: JSON.stringify({ menu_id: menuId }),
       });
       if (!response.ok) {
         throw new Error("게임을 시작할 수 없습니다.");
@@ -152,6 +152,7 @@ export default function App() {
       setCurrentOrder(order);
       setRemainingSeconds(GAME_SECONDS);
       setIsRunning(true);
+      setView("kiosk");
       await loadMenuDetails(order.menu_id);
     } catch (error) {
       setGameStatus(error.message);
@@ -295,12 +296,13 @@ export default function App() {
     setIsRunning(false);
     setFinalScore(null);
     setGameStatus("");
-    setView("kiosk");
+    setView("home");
   };
 
   useEffect(() => {
     if (isAuthed) {
       loadMenus();
+      setView("home");
     }
   }, [isAuthed]);
 
@@ -388,6 +390,9 @@ export default function App() {
             <h1>ORDER ALONE</h1>
             <p>게임 결과</p>
           </div>
+          <button className="ghost" onClick={() => setView("home")}>
+            홈으로
+          </button>
           <button className="ghost" onClick={logout}>
             로그아웃
           </button>
@@ -399,7 +404,7 @@ export default function App() {
           <button
             className="primary"
             onClick={() => {
-              setView("kiosk");
+              setView("home");
               setGameStatus("");
               setCurrentOrder(null);
               setGameId("");
@@ -409,6 +414,58 @@ export default function App() {
           >
             새 게임 준비
           </button>
+        </main>
+      </div>
+    );
+  }
+
+  if (view === "home") {
+    return (
+      <div className="app kiosk">
+        <header className="topbar">
+          <div>
+            <h1>ORDER ALONE</h1>
+            <p>메뉴를 고르고 게임을 시작하세요.</p>
+          </div>
+          <div className="status">
+            <button className="ghost" onClick={logout}>
+              로그아웃
+            </button>
+          </div>
+        </header>
+
+        <main className="grid">
+          <section className="panel">
+            <h2>키오스크 메뉴</h2>
+            {menuLoading ? (
+              <p>메뉴 불러오는 중...</p>
+            ) : (
+              <div className="menu-list">
+                {menus.map((menu) => (
+                  <button
+                    key={menu.id}
+                    type="button"
+                    className={selectedMenuId === menu.id ? "selected" : ""}
+                    onClick={() => setSelectedMenuId(menu.id)}
+                  >
+                    <div>
+                      <strong>{menu.name}</strong>
+                      <span>{menu.description}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="actions">
+              <button
+                className="primary"
+                onClick={() => startGame(selectedMenuId)}
+                disabled={!selectedMenuId || isRunning}
+              >
+                시작하기
+              </button>
+            </div>
+          </section>
         </main>
       </div>
     );
@@ -437,160 +494,121 @@ export default function App() {
       </header>
 
       <main className="grid">
-        <section className="panel">
-          <h2>메뉴 선택</h2>
-          {menuLoading ? (
-            <p>메뉴 불러오는 중...</p>
-          ) : (
-            <div className="menu-list">
-              {menus.map((menu) => (
-                <button
-                  key={menu.id}
-                  type="button"
-                  className={selectedMenuId === menu.id ? "selected" : ""}
-                  onClick={() => setSelectedMenuId(menu.id)}
-                >
-                  <div>
-                    <strong>{menu.name}</strong>
-                    <span>{menu.description}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="actions">
-            <button
-              className="primary"
-              onClick={startGame}
-              disabled={!selectedMenuId || isRunning}
-            >
-              게임 시작
-            </button>
+        <section className="panel order-panel">
+          <div className="order-header">
+            <h2>현재 주문</h2>
+            {currentOrder && <span>Order #{currentOrder.id?.slice(-6)}</span>}
           </div>
+          {currentOrder ? (
+            <div className="order-card">
+              <p className="order-category">{currentOrder.selection?.category}</p>
+              <h3>{currentOrder.selection?.item?.name}</h3>
+              <div className="topping-list">
+                {(currentOrder.selection?.topping || []).length ? (
+                  currentOrder.selection.topping.map((topping, index) => (
+                    <span key={`${topping.group}-${index}`}>
+                      {topping.group}: {topping.item?.name}
+                    </span>
+                  ))
+                ) : (
+                  <span>토핑 없음</span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p>게임을 시작하면 주문이 표시됩니다.</p>
+          )}
+          {gameStatus && <p className="status-text">{gameStatus}</p>}
         </section>
 
-        {selectedMenuId && (
-          <section className="panel order-panel">
-            <div className="order-header">
-              <h2>현재 주문</h2>
-              {currentOrder && <span>Order #{currentOrder.id?.slice(-6)}</span>}
-            </div>
-            {currentOrder ? (
-              <div className="order-card">
-                <p className="order-category">{currentOrder.selection?.category}</p>
-                <h3>{currentOrder.selection?.item?.name}</h3>
-                <div className="topping-list">
-                  {(currentOrder.selection?.topping || []).length ? (
-                    currentOrder.selection.topping.map((topping, index) => (
-                      <span key={`${topping.group}-${index}`}>
-                        {topping.group}: {topping.item?.name}
-                      </span>
-                    ))
-                  ) : (
-                    <span>토핑 없음</span>
-                  )}
+        <section className="panel selection-panel">
+          <h2>정답 입력</h2>
+          {!menuDetails ? (
+            <p>메뉴를 선택해 주세요.</p>
+          ) : (
+            <>
+              <div className="selector">
+                <p>카테고리</p>
+                <div className="chips">
+                  {categories.map((category) => (
+                    <button
+                      key={category.kategorie}
+                      type="button"
+                      className={answerCategory === category.kategorie ? "selected" : ""}
+                      onClick={() => setAnswerCategory(category.kategorie)}
+                    >
+                      {category.kategorie}
+                    </button>
+                  ))}
                 </div>
               </div>
-            ) : (
-              <p>게임을 시작하면 주문이 표시됩니다.</p>
-            )}
-            {gameStatus && <p className="status-text">{gameStatus}</p>}
-            {finalScore !== null && (
-              <p className="score">최종 점수: {finalScore}</p>
-            )}
-          </section>
-        )}
 
-        {selectedMenuId && (
-          <section className="panel selection-panel">
-            <h2>{isRunning ? "정답 입력" : "메뉴 미리보기"}</h2>
-            {!menuDetails ? (
-              <p>메뉴를 선택해 주세요.</p>
-            ) : (
-              <>
+              {selectedCategory && (
                 <div className="selector">
-                  <p>카테고리</p>
+                  <p>메뉴</p>
                   <div className="chips">
-                    {categories.map((category) => (
+                    {selectedCategory.menus.map((item) => (
                       <button
-                        key={category.kategorie}
+                        key={item.name}
                         type="button"
-                        className={answerCategory === category.kategorie ? "selected" : ""}
-                        onClick={() => setAnswerCategory(category.kategorie)}
+                        className={answerMenuName === item.name ? "selected" : ""}
+                        onClick={() => setAnswerMenuName(item.name)}
                       >
-                        {category.kategorie}
+                        {item.name}
                       </button>
                     ))}
                   </div>
                 </div>
+              )}
 
-                {selectedCategory && (
-                  <div className="selector">
-                    <p>메뉴</p>
-                    <div className="chips">
-                      {selectedCategory.menus.map((item) => (
-                        <button
-                          key={item.name}
-                          type="button"
-                          className={answerMenuName === item.name ? "selected" : ""}
-                          onClick={() => setAnswerMenuName(item.name)}
-                        >
-                          {item.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedCategory && selectedCategory.toping?.length > 0 && (
-                  <div className="selector">
-                    <p>토핑</p>
-                    <div className="topping-groups">
-                      {selectedCategory.toping.map((group) => (
-                        <div key={group.name} className="topping-group">
-                          <strong>{group.name}</strong>
-                          <div className="chips">
-                            {group.items.map((item) => {
-                              const selected = answerToppings.has(item.name);
-                              return (
-                                <button
-                                  key={item.name}
-                                  type="button"
-                                  className={selected ? "selected" : ""}
-                                  onClick={() => {
-                                    setAnswerToppings((prev) => {
-                                      const next = new Set(prev);
-                                      if (next.has(item.name)) {
-                                        next.delete(item.name);
-                                      } else {
-                                        next.add(item.name);
-                                      }
-                                      return next;
-                                    });
-                                  }}
-                                >
-                                  {item.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+              {selectedCategory && selectedCategory.toping?.length > 0 && (
+                <div className="selector">
+                  <p>토핑</p>
+                  <div className="topping-groups">
+                    {selectedCategory.toping.map((group) => (
+                      <div key={group.name} className="topping-group">
+                        <strong>{group.name}</strong>
+                        <div className="chips">
+                          {group.items.map((item) => {
+                            const selected = answerToppings.has(item.name);
+                            return (
+                              <button
+                                key={item.name}
+                                type="button"
+                                className={selected ? "selected" : ""}
+                                onClick={() => {
+                                  setAnswerToppings((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(item.name)) {
+                                      next.delete(item.name);
+                                    } else {
+                                      next.add(item.name);
+                                    }
+                                    return next;
+                                  });
+                                }}
+                              >
+                                {item.name}
+                              </button>
+                            );
+                          })}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                <button
-                  className="primary"
-                  onClick={submitScore}
-                  disabled={!currentOrder || !isRunning}
-                >
-                  채점 요청
-                </button>
-              </>
-            )}
-          </section>
-        )}
+              <button
+                className="primary"
+                onClick={submitScore}
+                disabled={!currentOrder || !isRunning}
+              >
+                채점 요청
+              </button>
+            </>
+          )}
+        </section>
       </main>
     </div>
   );
