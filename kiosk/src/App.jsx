@@ -55,16 +55,13 @@ export default function App() {
   const [view, setView] = useState("home");
   const [topGames, setTopGames] = useState([]);
   const [myGames, setMyGames] = useState([]);
-  const [gameOrders, setGameOrders] = useState([]);
   const [successfulOrders, setSuccessfulOrders] = useState([]);
   const [bestGame, setBestGame] = useState(null);
   const [topLoading, setTopLoading] = useState(false);
   const [myLoading, setMyLoading] = useState(false);
-  const [ordersLoading, setOrdersLoading] = useState(false);
   const [bestLoading, setBestLoading] = useState(false);
   const [topError, setTopError] = useState("");
   const [myError, setMyError] = useState("");
-  const [ordersError, setOrdersError] = useState("");
   const [bestError, setBestError] = useState("");
 
   const [answerCategory, setAnswerCategory] = useState("");
@@ -202,23 +199,6 @@ export default function App() {
     }
   };
 
-  const loadGameOrders = async (targetGameId) => {
-    if (!targetGameId) return;
-    setOrdersLoading(true);
-    setOrdersError("");
-    try {
-      const response = await apiFetch(`/order/game/${targetGameId}?limit=50`);
-      if (!response.ok) {
-        throw new Error("주문 기록을 불러올 수 없습니다.");
-      }
-      const data = await response.json();
-      setGameOrders(data);
-    } catch (error) {
-      setOrdersError(error.message);
-    } finally {
-      setOrdersLoading(false);
-    }
-  };
 
   const resetAnswer = () => {
     setAnswerCategory("");
@@ -270,7 +250,6 @@ export default function App() {
       setFinalScore(data.score ?? 0);
       setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
       await loadMyGames();
-      await loadGameOrders(gameId);
       await loadBestGame();
       setView("score");
     } catch (error) {
@@ -404,7 +383,6 @@ export default function App() {
     setGameStatus("");
     setTopGames([]);
     setMyGames([]);
-    setGameOrders([]);
     setSuccessfulOrders([]);
     setBestGame(null);
     setView("home");
@@ -560,37 +538,6 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="game-list">
-            <div className="game-list-header">
-              <h3>이번 게임 주문</h3>
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => loadGameOrders(gameId)}
-                disabled={ordersLoading}
-              >
-                새로고침
-              </button>
-            </div>
-            {ordersLoading && <p>불러오는 중...</p>}
-            {ordersError && <p className="error">{ordersError}</p>}
-            {!ordersLoading && !ordersError && gameOrders.length === 0 && (
-              <p>주문 기록이 없습니다.</p>
-            )}
-            {!ordersLoading && !ordersError && gameOrders.length > 0 && (
-              <div className="game-cards">
-                {gameOrders.map((order) => (
-                  <div key={order.id} className="game-card">
-                    <div>
-                      <strong>{order.selection?.item?.name || "메뉴"}</strong>
-                      <span>{order.selection?.category || "카테고리"}</span>
-                    </div>
-                    <span className="game-meta">#{String(order.id).slice(-6)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
           <button
             className="primary"
             onClick={() => {
@@ -600,10 +547,9 @@ export default function App() {
               setGameId("");
               setRemainingSeconds(0);
               setFinalScore(null);
-              setGameOrders([]);
               setSuccessfulOrders([]);
             }}
-          >
+            >
             새 게임 준비
           </button>
         </main>
