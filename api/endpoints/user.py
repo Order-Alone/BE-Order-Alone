@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from starlette import status
@@ -17,6 +19,7 @@ from utils.auth import (
 
 user_col = database["user"]
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 class UserLoginRequest(BaseModel):
     accountId: str
@@ -28,6 +31,7 @@ class RefreshTokenRequest(BaseModel):
 
 @router.post("/signup")
 async def signup(user: User):
+    logger.info("signup request accountId=%s password_bytes=%s", user.accountId, len(user.password.encode("utf-8")))
     if is_password_too_long(user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
 
@@ -35,7 +39,14 @@ async def signup(user: User):
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
 
-    hashed_password = get_password_hash(user.password)
+    try:
+        hashed_password = get_password_hash(user.password)
+    except ValueError as exc:
+        logger.exception("bcrypt hash failed accountId=%s", user.accountId)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is too long",
+        ) from exc
     doc = user.model_dump()
 
 
@@ -62,12 +73,21 @@ async def signup(user: User):
 
 @router.post("/login")
 async def login(body: UserLoginRequest):
+    logger.info("login request accountId=%s password_bytes=%s", body.accountId, len(body.password.encode("utf-8")))
     if is_password_too_long(body.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is too long")
     user = await user_col.find_one({"accountId": body.accountId})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if not verify_password(body.password, user["password"]):
+    try:
+        password_ok = verify_password(body.password, user["password"])
+    except ValueError as exc:
+        logger.exception("bcrypt verify failed accountId=%s", body.accountId)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is too long",
+        ) from exc
+    if not password_ok:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     access_token = create_access_token({"sub": str(user["accountId"])})
     refresh_token = create_refresh_token({"sub": str(user["accountId"])})
