@@ -252,6 +252,20 @@ export default function App() {
     }
   };
 
+  const loadSuccessfulOrders = async (targetGameId) => {
+    if (!targetGameId) return;
+    try {
+      const response = await apiFetch(`/order/game/${targetGameId}?limit=50`);
+      if (!response.ok) {
+        throw new Error("성공 주문을 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setSuccessfulOrders(data);
+    } catch {
+      setSuccessfulOrders([]);
+    }
+  };
+
   const loadBestGame = async () => {
     setBestLoading(true);
     setBestError("");
@@ -330,6 +344,7 @@ export default function App() {
       setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
       await loadMyGames();
       await loadBestGame();
+      await loadSuccessfulOrders(gameId);
       setView("score");
     } catch (error) {
       setGameStatus(error.message);
@@ -378,13 +393,6 @@ export default function App() {
       const data = await response.json();
       if (data.correct) {
         setGameStatus("정답! 다음 주문으로 넘어갑니다.");
-        setSuccessfulOrders((prev) => {
-          if (!currentOrder) return prev;
-          if (prev.some((order) => order.id === currentOrder.id)) {
-            return prev;
-          }
-          return [currentOrder, ...prev];
-        });
       } else {
         setGameStatus(
           `오답! 정답: ${data.expected?.category || ""} / ${data.expected?.menu_name || ""}`

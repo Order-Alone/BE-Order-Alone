@@ -146,7 +146,10 @@ async def score_order(body: OrderScoreRequest):
             {"$set": {"is_correct": True}},
         )
     else:
-        await order_col.delete_one({"_id": _as_object_id(body.order_id, "order")})
+        await order_col.update_one(
+            {"_id": _as_object_id(body.order_id, "order")},
+            {"$set": {"is_correct": False}},
+        )
 
     return {
         "order_id": body.order_id,
