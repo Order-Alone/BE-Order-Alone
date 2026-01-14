@@ -217,6 +217,9 @@ export default function App() {
       }
       const data = await response.json();
       setMenuDetails(data);
+      if (!answerCategory && data?.data?.length) {
+        setAnswerCategory(data.data[0].kategorie);
+      }
     } catch (error) {
       setGameStatus(error.message);
     }
@@ -742,7 +745,6 @@ export default function App() {
 
           <section className="kiosk-card category-box">
             <div className="section-row">
-              <h3>카테고리</h3>
               <span className="muted">{isRunning ? "선택해서 맞혀보세요" : "미리 보기"}</span>
             </div>
             <div className="category-scroll">

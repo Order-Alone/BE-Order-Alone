@@ -436,6 +436,10 @@ button {
   padding-bottom: 6px;
 }
 
+.category-box {
+  padding: 10px 16px;
+}
+
 .chip-pill {
   border: none;
   background: #fff;
