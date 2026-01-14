@@ -96,6 +96,7 @@ export default function App() {
     () => categories.find((cat) => cat.kategorie === answerCategory),
     [categories, answerCategory]
   );
+  const activeCategory = selectedCategory || categories[0];
 
   const selectedToppingNames = useMemo(
     () => Array.from(answerToppings.values()),
@@ -103,20 +104,12 @@ export default function App() {
   );
 
   const menuItems = useMemo(() => {
-    if (!menuDetails?.data?.length) return [];
-    if (selectedCategory) {
-      return selectedCategory.menus.map((item) => ({
-        ...item,
-        category: selectedCategory.kategorie,
-      }));
-    }
-    return menuDetails.data.flatMap((category) =>
-      category.menus.map((item) => ({
-        ...item,
-        category: category.kategorie,
-      }))
-    );
-  }, [menuDetails, selectedCategory]);
+    if (!menuDetails?.data?.length || !activeCategory) return [];
+    return activeCategory.menus.map((item) => ({
+      ...item,
+      category: activeCategory.kategorie,
+    }));
+  }, [menuDetails, activeCategory]);
 
   const userDisplayName = userProfile?.name ? `${userProfile.name} 님` : "사용자 님";
 
@@ -291,6 +284,9 @@ export default function App() {
     }
     if (!menuId && targetMenuId) {
       setSelectedMenuId(targetMenuId);
+    }
+    if (!answerCategory && menuDetails?.data?.length) {
+      setAnswerCategory(menuDetails.data[0].kategorie);
     }
     setGameStatus("");
     setFinalScore(null);
@@ -745,14 +741,13 @@ export default function App() {
 
           <section className="kiosk-card category-box">
             <div className="section-row">
-              <span className="muted">{isRunning ? "선택해서 맞혀보세요" : "미리 보기"}</span>
             </div>
             <div className="category-scroll">
               {categories.map((category) => (
                 <button
                   key={category.kategorie}
                   type="button"
-                  className={`chip-pill ${answerCategory === category.kategorie ? "selected" : ""}`}
+                  className={`chip-pill ${activeCategory?.kategorie === category.kategorie ? "selected" : ""}`}
                   onClick={() => setAnswerCategory(category.kategorie)}
                 >
                   {category.kategorie}
