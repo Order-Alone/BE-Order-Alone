@@ -123,10 +123,9 @@ export default function App() {
   const renderHeader = () => (
     <header className="app-header">
       <div className="logo">
-        <span className="logo-mark">OA</span>
+        <span className="logo-mark" aria-hidden="true"></span>
         <div>
           <strong>Order Alone</strong>
-          <span>Solo kiosk</span>
         </div>
       </div>
       <div className="user-info">
@@ -851,9 +850,6 @@ export default function App() {
               onClick={submitScore}
               disabled={!currentOrder || !isRunning}
             >
-              채점 요청
-            </button>
-            <button className="primary pay" type="button">
               결제하기
             </button>
           </div>
