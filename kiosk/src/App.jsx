@@ -33,6 +33,28 @@ const formatDateTime = (value) => {
   });
 };
 
+const FALLBACK_IMAGE =
+  "data:image/svg+xml;charset=UTF-8," +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>" +
+      "<rect width='80' height='80' rx='16' fill='#f3efe9'/>" +
+      "<path d='M20 54h40l-10-14-9 10-8-7-13 11z' fill='#d1c7bb'/>" +
+      "<circle cx='30' cy='28' r='6' fill='#d1c7bb'/>" +
+    "</svg>"
+  );
+
+const ImageWithFallback = ({ src, alt, className }) => (
+  <img
+    className={className}
+    src={src || FALLBACK_IMAGE}
+    alt={alt}
+    onError={(event) => {
+      event.currentTarget.onerror = null;
+      event.currentTarget.src = FALLBACK_IMAGE;
+    }}
+  />
+);
+
 export default function App() {
   const [accessToken, setAccessToken] = useState(storage.get("oa_access_token"));
   const [refreshToken, setRefreshToken] = useState(storage.get("oa_refresh_token"));
@@ -57,6 +79,7 @@ export default function App() {
   const [myGames, setMyGames] = useState([]);
   const [successfulOrders, setSuccessfulOrders] = useState([]);
   const [bestGame, setBestGame] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [topLoading, setTopLoading] = useState(false);
   const [myLoading, setMyLoading] = useState(false);
   const [bestLoading, setBestLoading] = useState(false);
@@ -77,6 +100,45 @@ export default function App() {
   const selectedToppingNames = useMemo(
     () => Array.from(answerToppings.values()),
     [answerToppings]
+  );
+
+  const menuItems = useMemo(() => {
+    if (!menuDetails?.data?.length) return [];
+    if (selectedCategory) {
+      return selectedCategory.menus.map((item) => ({
+        ...item,
+        category: selectedCategory.kategorie,
+      }));
+    }
+    return menuDetails.data.flatMap((category) =>
+      category.menus.map((item) => ({
+        ...item,
+        category: category.kategorie,
+      }))
+    );
+  }, [menuDetails, selectedCategory]);
+
+  const userDisplayName = userProfile?.name ? `${userProfile.name} 님` : "사용자 님";
+
+  const renderHeader = () => (
+    <header className="app-header">
+      <div className="logo">
+        <span className="logo-mark">OA</span>
+        <div>
+          <strong>Order Alone</strong>
+          <span>Solo kiosk</span>
+        </div>
+      </div>
+      <div className="user-info">
+        <div className="user-text">
+          <span className="user-name">{userDisplayName}</span>
+          {userProfile?.account_id && <span className="user-sub">@{userProfile.account_id}</span>}
+        </div>
+        <button className="ghost" onClick={logout}>
+          로그아웃
+        </button>
+      </div>
+    </header>
   );
 
   const isAuthed = Boolean(accessToken);
@@ -128,6 +190,19 @@ export default function App() {
       setGameStatus(error.message);
     } finally {
       setMenuLoading(false);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const response = await apiFetch("/user/me");
+      if (!response.ok) {
+        throw new Error("사용자 정보를 불러올 수 없습니다.");
+      }
+      const data = await response.json();
+      setUserProfile(data);
+    } catch {
+      setUserProfile(null);
     }
   };
 
@@ -391,6 +466,7 @@ export default function App() {
     setMyGames([]);
     setSuccessfulOrders([]);
     setBestGame(null);
+    setUserProfile(null);
     setView("home");
   };
 
@@ -400,6 +476,7 @@ export default function App() {
       loadTopGames();
       loadMyGames();
       loadBestGame();
+      loadUserProfile();
       setView("home");
     }
   }, [isAuthed]);
@@ -483,18 +560,7 @@ export default function App() {
   if (view === "score") {
     return (
       <div className="app kiosk score-view">
-        <header className="topbar">
-          <div>
-            <h1>ORDER ALONE</h1>
-            <p>게임 결과</p>
-          </div>
-          <button className="ghost" onClick={() => setView("home")}>
-            홈으로
-          </button>
-          <button className="ghost" onClick={logout}>
-            로그아웃
-          </button>
-        </header>
+        {renderHeader()}
         <main className="panel score-panel">
           <h2>최종 점수</h2>
           <p className="score">{finalScore ?? 0}점</p>
@@ -516,7 +582,7 @@ export default function App() {
                 {myGames.map((game) => (
                   <div key={game.id} className="game-card">
                     <div>
-                      <strong>점수 {game.score ?? 0}</strong>
+                      <strong>{game.score ?? 0}</strong>
                       <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
                     </div>
                   </div>
@@ -564,94 +630,74 @@ export default function App() {
   if (view === "home") {
     return (
       <div className="app kiosk">
-        <header className="topbar">
-          <div>
-            <h1>ORDER ALONE</h1>
-            <p>메뉴를 고르고 게임을 시작하세요.</p>
-          </div>
-          <div className="status">
-            <button className="ghost" onClick={logout}>
-              로그아웃
-            </button>
-          </div>
-        </header>
+        {renderHeader()}
 
-        <main className="grid">
-          <section className="panel">
-            <h2>키오스크 메뉴</h2>
-            {menuLoading ? (
-              <p>메뉴 불러오는 중...</p>
-            ) : (
-              <div className="menu-list">
-                {menus.map((menu) => (
-                  <button
-                    key={menu.id}
-                    type="button"
-                    className={selectedMenuId === menu.id ? "selected" : ""}
-                    onClick={() => setSelectedMenuId(menu.id)}
-                  >
-                    <div>
-                      <strong>{menu.name}</strong>
-                      <span>{menu.description}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="actions">
-              <button
-                className="primary"
-                onClick={() => startGame(selectedMenuId)}
-                disabled={menus.length === 0 || isRunning}
-              >
-                시작하기
-              </button>
-            </div>
-          </section>
-          <section className="panel">
-            <div className="game-list-header">
-              <h2>내 최고 점수</h2>
-              <button type="button" className="ghost" onClick={loadBestGame} disabled={bestLoading}>
-                새로고침
-              </button>
-            </div>
-            {bestLoading && <p>불러오는 중...</p>}
-            {bestError && <p className="error">{bestError}</p>}
-            {!bestLoading && !bestError && !bestGame && <p>기록이 없습니다.</p>}
-            {!bestLoading && !bestError && bestGame && (
-              <div className="game-card">
-                <div>
-                  <strong>{bestGame.score ?? 0}</strong>
-                  <span>{bestGame.user_name ? `${bestGame.user_name} · ` : ""}{formatDateTime(bestGame.date)}</span>
+        <main className="home-layout">
+          <div className="score-strip">
+            <span>내 최고점수</span>
+            <strong>{bestGame?.score ?? 0}점</strong>
+            <span className="score-date">
+              {bestGame ? formatDateTime(bestGame.date) : "기록 없음"}
+            </span>
+          </div>
+          <div className="home-grid">
+            <section className="panel menu-panel">
+              <h2>키오스크 메뉴</h2>
+              {menuLoading ? (
+                <p>메뉴 불러오는 중...</p>
+              ) : (
+                <div className="menu-list">
+                  {menus.map((menu) => (
+                    <button
+                      key={menu.id}
+                      type="button"
+                      className={selectedMenuId === menu.id ? "selected" : ""}
+                      onClick={() => setSelectedMenuId(menu.id)}
+                    >
+                      <div>
+                        <strong>{menu.name}</strong>
+                        <span>{menu.description}</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
+              )}
+              <div className="actions">
+                <button
+                  className="primary"
+                  onClick={() => startGame(selectedMenuId)}
+                  disabled={menus.length === 0 || isRunning}
+                >
+                  시작하기
+                </button>
               </div>
-            )}
-          </section>
-          <section className="panel">
-            <div className="game-list-header">
-              <h2>상위 게임</h2>
-              <button type="button" className="ghost" onClick={loadTopGames} disabled={topLoading}>
-                새로고침
-              </button>
-            </div>
-            {topLoading && <p>불러오는 중...</p>}
-            {topError && <p className="error">{topError}</p>}
-            {!topLoading && !topError && topGames.length === 0 && (
-              <p>기록이 없습니다.</p>
-            )}
-            {!topLoading && !topError && topGames.length > 0 && (
-              <div className="game-cards">
-                {topGames.map((game, index) => (
-                  <div key={game.id} className="game-card">
-                    <div>
-                      <strong>#{index + 1} {game.score ?? 0}</strong>
-                      <span>{game.user_name ? `${game.user_name} · ` : ""}{formatDateTime(game.date)}</span>
+            </section>
+            <section className="panel rank-panel">
+              <div className="game-list-header">
+                <h2>랭킹</h2>
+                <button type="button" className="ghost" onClick={loadTopGames} disabled={topLoading}>
+                  새로고침
+                </button>
+              </div>
+              {topLoading && <p>불러오는 중...</p>}
+              {topError && <p className="error">{topError}</p>}
+              {!topLoading && !topError && topGames.length === 0 && (
+                <p>기록이 없습니다.</p>
+              )}
+              {!topLoading && !topError && topGames.length > 0 && (
+                <div className="game-cards">
+                  {topGames.map((game, index) => (
+                    <div key={game.id} className="game-card">
+                      <div>
+                        <strong>#{index + 1} {game.user_name || "사용자"}</strong>
+                        <span>점수 {game.score ?? 0} · {formatDateTime(game.date)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </main>
       </div>
     );
@@ -659,142 +705,159 @@ export default function App() {
 
   return (
     <div className="app kiosk">
-      <header className="topbar">
-        <div>
-          <h1>ORDER ALONE</h1>
-          <p>1분 챌린지 키오스크</p>
-        </div>
-        <div className="status">
-          <div>
-            <span>타이머</span>
-            <strong>{formatTime(remainingSeconds)}</strong>
-          </div>
-          <div>
-            <span>상태</span>
-            <strong>{isRunning ? "게임 중" : "대기"}</strong>
-          </div>
-          <button className="ghost" onClick={logout}>
-            로그아웃
-          </button>
-        </div>
-      </header>
+      {renderHeader()}
 
-      <main className="grid">
-        <section className="panel order-panel">
-          <div className="order-header">
-            <h2>현재 주문</h2>
-            {currentOrder && <span>Order #{currentOrder.id?.slice(-6)}</span>}
-          </div>
-          {currentOrder ? (
-            <div className="order-card">
-              <p className="order-category">{currentOrder.selection?.category}</p>
-              <h3>{currentOrder.selection?.item?.name}</h3>
-              <div className="topping-list">
-                {(currentOrder.selection?.topping || []).length ? (
-                  currentOrder.selection.topping.map((topping, index) => (
-                    <span key={`${topping.group}-${index}`}>
-                      {topping.group}: {topping.item?.name}
-                    </span>
-                  ))
-                ) : (
-                  <span>토핑 없음</span>
+      <main className="kiosk-layout">
+        <div className="kiosk-center">
+          <section className="kiosk-card order-box">
+            <div className="order-box-header">
+              <h2>현재 주문</h2>
+              <span className="timer-pill">{formatTime(remainingSeconds)}</span>
+            </div>
+            {currentOrder ? (
+              <div className="order-card">
+                <ImageWithFallback
+                  className="order-image"
+                  src={currentOrder.selection?.item?.img}
+                  alt={currentOrder.selection?.item?.name || "Order"}
+                />
+                <p className="order-category">{currentOrder.selection?.category}</p>
+                <h3>{currentOrder.selection?.item?.name}</h3>
+                <div className="topping-list">
+                  {(currentOrder.selection?.topping || []).length ? (
+                    currentOrder.selection.topping.map((topping, index) => (
+                      <span key={`${topping.group}-${index}`}>
+                        {topping.group}: {topping.item?.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span>토핑 없음</span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p>게임을 시작하면 주문이 표시됩니다.</p>
+            )}
+            {gameStatus && <p className="status-text">{gameStatus}</p>}
+          </section>
+
+          <section className="kiosk-card category-box">
+            <div className="section-row">
+              <h3>카테고리</h3>
+              <span className="muted">{isRunning ? "선택해서 맞혀보세요" : "미리 보기"}</span>
+            </div>
+            <div className="category-scroll">
+              {categories.map((category) => (
+                <button
+                  key={category.kategorie}
+                  type="button"
+                  className={`chip-pill ${answerCategory === category.kategorie ? "selected" : ""}`}
+                  onClick={() => setAnswerCategory(category.kategorie)}
+                >
+                  {category.kategorie}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="kiosk-card menu-box">
+            <div className="section-row">
+              <h3>메뉴</h3>
+              <span className="muted">
+                {selectedCategory ? selectedCategory.kategorie : "전체 메뉴"}
+              </span>
+            </div>
+            <div className="menu-grid">
+              {menuItems.map((item) => (
+                <button
+                  key={`${item.category}-${item.name}`}
+                  type="button"
+                  className={`menu-tile ${answerMenuName === item.name ? "selected" : ""}`}
+                  onClick={() => {
+                    setAnswerCategory(item.category);
+                    setAnswerMenuName(item.name);
+                  }}
+                >
+                  <ImageWithFallback className="menu-tile-image" src={item.img} alt={item.name} />
+                  <span>{item.name}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="kiosk-aside">
+          <div className="kiosk-card cart-box">
+            <h3>지금 담은 메뉴</h3>
+            {answerMenuName ? (
+              <div className="cart-item">
+                <strong>{answerMenuName}</strong>
+                <span>{answerCategory || "카테고리 미선택"}</span>
+                {selectedToppingNames.length > 0 && (
+                  <div className="cart-toppings">
+                    {selectedToppingNames.map((name) => (
+                      <span key={name}>{name}</span>
+                    ))}
+                  </div>
                 )}
               </div>
-            </div>
-          ) : (
-            <p>게임을 시작하면 주문이 표시됩니다.</p>
-          )}
-          {gameStatus && <p className="status-text">{gameStatus}</p>}
-        </section>
+            ) : (
+              <p className="muted">메뉴를 선택해 주세요.</p>
+            )}
 
-        <section className="panel selection-panel">
-          <h2>정답 입력</h2>
-          {!menuDetails ? (
-            <p>메뉴를 선택해 주세요.</p>
-          ) : (
-            <>
-              <div className="selector">
-                <p>카테고리</p>
-                <div className="chips">
-                  {categories.map((category) => (
-                    <button
-                      key={category.kategorie}
-                      type="button"
-                      className={answerCategory === category.kategorie ? "selected" : ""}
-                      onClick={() => setAnswerCategory(category.kategorie)}
-                    >
-                      {category.kategorie}
-                    </button>
+            {selectedCategory && selectedCategory.toping?.length > 0 && (
+              <div className="cart-topping-selector">
+                <p>토핑 선택</p>
+                <div className="topping-groups">
+                  {selectedCategory.toping.map((group) => (
+                    <div key={group.name} className="topping-group">
+                      <strong>{group.name}</strong>
+                      <div className="chips">
+                        {group.items.map((item) => {
+                          const selected = answerToppings.has(item.name);
+                          return (
+                            <button
+                              key={item.name}
+                              type="button"
+                              className={selected ? "selected" : ""}
+                              onClick={() => {
+                                setAnswerToppings((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(item.name)) {
+                                    next.delete(item.name);
+                                  } else {
+                                    next.add(item.name);
+                                  }
+                                  return next;
+                                });
+                              }}
+                            >
+                              <span className="chip-content">
+                                <ImageWithFallback className="chip-image" src={item.img} alt={item.name} />
+                                {item.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
+            )}
 
-              {selectedCategory && (
-                <div className="selector">
-                  <p>메뉴</p>
-                  <div className="chips">
-                    {selectedCategory.menus.map((item) => (
-                      <button
-                        key={item.name}
-                        type="button"
-                        className={answerMenuName === item.name ? "selected" : ""}
-                        onClick={() => setAnswerMenuName(item.name)}
-                      >
-                        {item.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedCategory && selectedCategory.toping?.length > 0 && (
-                <div className="selector">
-                  <p>토핑</p>
-                  <div className="topping-groups">
-                    {selectedCategory.toping.map((group) => (
-                      <div key={group.name} className="topping-group">
-                        <strong>{group.name}</strong>
-                        <div className="chips">
-                          {group.items.map((item) => {
-                            const selected = answerToppings.has(item.name);
-                            return (
-                              <button
-                                key={item.name}
-                                type="button"
-                                className={selected ? "selected" : ""}
-                                onClick={() => {
-                                  setAnswerToppings((prev) => {
-                                    const next = new Set(prev);
-                                    if (next.has(item.name)) {
-                                      next.delete(item.name);
-                                    } else {
-                                      next.add(item.name);
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              >
-                                {item.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <button
-                className="primary"
-                onClick={submitScore}
-                disabled={!currentOrder || !isRunning}
-              >
-                채점 요청
-              </button>
-            </>
-          )}
-        </section>
+            <button
+              className="primary"
+              onClick={submitScore}
+              disabled={!currentOrder || !isRunning}
+            >
+              채점 요청
+            </button>
+            <button className="primary pay" type="button">
+              결제하기
+            </button>
+          </div>
+        </aside>
       </main>
     </div>
   );

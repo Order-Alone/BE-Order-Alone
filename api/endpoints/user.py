@@ -14,6 +14,7 @@ from utils.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS,
     get_current_refresh_user,
+    get_current_user,
     is_password_too_long,
 )
 
@@ -131,4 +132,19 @@ async def refresh_token(body: RefreshTokenRequest):
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in_minutes": ACCESS_TOKEN_EXPIRE_MINUTES,
+    }
+
+
+@router.get(
+    "/me",
+    summary="내 정보",
+    description="현재 로그인 사용자의 정보를 반환합니다.",
+)
+async def get_me(account_id: str = Depends(get_current_user)):
+    user = await user_col.find_one({"$or": [{"account_id": account_id}, {"accountId": account_id}]})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return {
+        "account_id": user.get("account_id") or user.get("accountId"),
+        "name": user.get("name"),
     }
