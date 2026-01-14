@@ -70,7 +70,7 @@ export default function App() {
 
   const [gameId, setGameId] = useState("");
   const [currentOrder, setCurrentOrder] = useState(null);
-  const [gameStatus, setGameStatus] = useState("");
+  const [gameStatus, setGameStatus] = useState(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [finalScore, setFinalScore] = useState(null);
@@ -179,7 +179,7 @@ export default function App() {
         setSelectedMenuId(data[0].id);
       }
     } catch (error) {
-      setGameStatus(error.message);
+      setGameStatus({ type: "error", message: error.message });
     } finally {
       setMenuLoading(false);
     }
@@ -214,7 +214,7 @@ export default function App() {
         setAnswerCategory(data.data[0].kategorie);
       }
     } catch (error) {
-      setGameStatus(error.message);
+      setGameStatus({ type: "error", message: error.message });
     }
   };
 
@@ -293,7 +293,7 @@ export default function App() {
   const startGame = async (menuId) => {
     const targetMenuId = menuId || menus[0]?.id;
     if (!targetMenuId) {
-      setGameStatus("메뉴를 선택해 주세요.");
+      setGameStatus({ type: "info", message: "메뉴를 선택해 주세요." });
       return;
     }
     if (!menuId && targetMenuId) {
@@ -302,7 +302,7 @@ export default function App() {
     if (!answerCategory && menuDetails?.data?.length) {
       setAnswerCategory(menuDetails.data[0].kategorie);
     }
-    setGameStatus("");
+    setGameStatus(null);
     setFinalScore(null);
     setSuccessfulOrders([]);
     resetAnswer();
@@ -324,7 +324,7 @@ export default function App() {
       setView("kiosk");
       await loadMenuDetails(order.menu_id);
     } catch (error) {
-      setGameStatus(error.message);
+      setGameStatus({ type: "error", message: error.message });
     }
   };
 
@@ -341,13 +341,13 @@ export default function App() {
       }
       const data = await response.json();
       setFinalScore(data.score ?? 0);
-      setGameStatus(`게임 종료! 최종 점수: ${data.score ?? 0}`);
+      setGameStatus({ type: "info", message: `게임 종료! 최종 점수: ${data.score ?? 0}` });
       await loadMyGames();
       await loadBestGame();
       await loadSuccessfulOrders(gameId);
       setView("score");
     } catch (error) {
-      setGameStatus(error.message);
+      setGameStatus({ type: "error", message: error.message });
     }
   };
 
@@ -367,14 +367,14 @@ export default function App() {
   const submitScore = async () => {
     if (!currentOrder || !gameId) return;
     if (!answerCategory || !answerMenuName) {
-      setGameStatus("카테고리와 메뉴를 선택해 주세요.");
+      setGameStatus({ type: "info", message: "카테고리와 메뉴를 선택해 주세요." });
       return;
     }
     if (!isRunning) {
-      setGameStatus("게임이 종료되었습니다.");
+      setGameStatus({ type: "info", message: "게임이 종료되었습니다." });
       return;
     }
-    setGameStatus("");
+    setGameStatus(null);
 
     try {
       const response = await apiFetch("/order/score", {
@@ -392,18 +392,20 @@ export default function App() {
       }
       const data = await response.json();
       if (data.correct) {
-        setGameStatus("정답! 다음 주문으로 넘어갑니다.");
+        setGameStatus({ type: "success", message: "정답입니다." });
       } else {
-        setGameStatus(
-          `오답! 정답: ${data.expected?.category || ""} / ${data.expected?.menu_name || ""}`
-        );
+        setGameStatus({
+          type: "error",
+          message: "틀렸습니다.",
+          detail: `정답: ${data.expected?.category || ""} / ${data.expected?.menu_name || ""}`,
+        });
       }
       resetAnswer();
       if (isRunning) {
         await requestNextOrder();
       }
     } catch (error) {
-      setGameStatus(error.message);
+      setGameStatus({ type: "error", message: error.message });
     }
   };
 
@@ -467,7 +469,7 @@ export default function App() {
     setGameId("");
     setIsRunning(false);
     setFinalScore(null);
-    setGameStatus("");
+    setGameStatus(null);
     setTopGames([]);
     setMyGames([]);
     setSuccessfulOrders([]);
@@ -618,7 +620,7 @@ export default function App() {
             className="primary"
             onClick={() => {
               setView("home");
-              setGameStatus("");
+              setGameStatus(null);
               setCurrentOrder(null);
               setGameId("");
               setRemainingSeconds(0);
@@ -744,7 +746,17 @@ export default function App() {
             ) : (
               <p>게임을 시작하면 주문이 표시됩니다.</p>
             )}
-            {gameStatus && <p className="status-text">{gameStatus}</p>}
+            {gameStatus && (
+              <div className={`status-box ${gameStatus.type}`}>
+                <span className="status-emoji">
+                  {gameStatus.type === "success" ? "✅" : gameStatus.type === "error" ? "❌" : "ℹ️"}
+                </span>
+                <div className="status-copy">
+                  <p className="status-title">{gameStatus.message}</p>
+                  {gameStatus.detail && <p className="status-detail">{gameStatus.detail}</p>}
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="kiosk-card category-box">

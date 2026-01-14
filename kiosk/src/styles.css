@@ -5,6 +5,12 @@
   --ink: #1b1b1b;
   --accent: #16a34a;
   --accent-dark: #0f7a36;
+  --success: #16a34a;
+  --success-soft: #ecfdf3;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --info: #2563eb;
+  --info-soft: #eff6ff;
   --panel: #f7f7f7;
   --panel-strong: #ffffff;
   --stroke: #d9d9d9;
@@ -335,6 +341,48 @@ button {
 .status-text {
   margin: 0;
   font-weight: 600;
+}
+
+.status-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: var(--panel);
+}
+
+.status-box.success {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.status-box.error {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.status-box.info {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+
+.status-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.status-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.status-detail {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .score {
