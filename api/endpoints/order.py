@@ -97,6 +97,7 @@ async def create_order(body: OrderCreateRequest):
     order_doc = order.model_dump()
     order_doc["menu_id"] = menu["_id"]
     order_doc["game_id"] = _as_object_id(body.game_id, "game")
+    order_doc["is_correct"] = False
     result = await order_col.insert_one(order_doc)
     order_doc["_id"] = result.inserted_id
     response = _serialize_order(order_doc)
@@ -140,6 +141,10 @@ async def score_order(body: OrderScoreRequest):
             {"_id": _as_object_id(body.game_id, "game")},
             {"$inc": {"score": level}},
         )
+        await order_col.update_one(
+            {"_id": _as_object_id(body.order_id, "order")},
+            {"$set": {"is_correct": True}},
+        )
     else:
         await order_col.delete_one({"_id": _as_object_id(body.order_id, "order")})
 
@@ -165,5 +170,7 @@ async def list_orders_by_game(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
     if game.get("user_id") != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Game does not belong to user")
-    orders = await order_col.find({"game_id": _as_object_id(game_id, "game")}).to_list(limit)
+    orders = await order_col.find(
+        {"game_id": _as_object_id(game_id, "game"), "is_correct": True}
+    ).to_list(limit)
     return [_serialize_order(order) for order in orders]

@@ -18,3 +18,4 @@ class Order(BaseModel):
     level: Optional[int] = Field(None, description="주문 시점 난이도")
     selection: OrderSelection = Field(..., description="주문 선택 정보")
     created_at: datetime = Field(..., description="생성 시각 (UTC)")
+    is_correct: Optional[bool] = Field(None, description="정답 여부")
